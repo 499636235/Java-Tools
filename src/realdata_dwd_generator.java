@@ -85,7 +85,8 @@ public class realdata_dwd_generator {
 
             //取出当前文件用到的表和主键
             String inputFileName = inputFile.getName();
-            tableName = inputFileName.substring(10, inputFileName.length()-3).toUpperCase();;
+//            tableName = inputFileName.substring(10, inputFileName.length()-3).toUpperCase();
+            tableName = inputFileName.substring(5, inputFileName.length()-3).toUpperCase();
             ArrayList<String> primaryKeyList = primaryKeyMap.get(tableName);
 
 
@@ -94,14 +95,15 @@ public class realdata_dwd_generator {
 
             HashMap<String,String> replaceMap = new HashMap<>();
             replaceMap.put("表名",tableName);
-            replaceMap.put("主键list",columnOperate(primaryKeyList,"主键list"));
-            replaceMap.put("主键list-a",columnOperate(primaryKeyList,"主键list-a"));
-            replaceMap.put("主键list-temp",columnOperate(primaryKeyList,"主键list-temp"));
-            replaceMap.put("主键1",columnOperate(primaryKeyList,"主键1"));
-            replaceMap.put("主键list a=keylist",columnOperate(primaryKeyList,"主键list a=keylist"));
-            replaceMap.put("主键list tmp=tmp2",columnOperate(primaryKeyList,"主键list tmp=tmp2"));
-            replaceMap.put("列名-a",columnOperate(columnList,"列名-a"));
-            replaceMap.put("列名-tmp",columnOperate(columnList,"列名-tmp"));
+//            replaceMap.put("主键list",columnOperate(primaryKeyList,"主键list"));
+//            replaceMap.put("主键list-a",columnOperate(primaryKeyList,"主键list-a"));
+//            replaceMap.put("主键list-temp",columnOperate(primaryKeyList,"主键list-temp"));
+//            replaceMap.put("主键1",columnOperate(primaryKeyList,"主键1"));
+//            replaceMap.put("主键list a=keylist",columnOperate(primaryKeyList,"主键list a=keylist"));
+//            replaceMap.put("主键list tmp=tmp2",columnOperate(primaryKeyList,"主键list tmp=tmp2"));
+            replaceMap.put("列名",columnOperate(columnList,"列名"));
+//            replaceMap.put("列名-a",columnOperate(columnList,"列名-a"));
+//            replaceMap.put("列名-tmp",columnOperate(columnList,"列名-tmp"));
             replaceMap.put("","");
 
 
@@ -176,7 +178,18 @@ public class realdata_dwd_generator {
                 stringBuilder.append(alias).append(".").append(string).append(",").append("\n");
             }
         }
-
+        if (operate.equals("列名")){
+            for (int i = 0;i < columnList.size();i++){
+                String string = columnList.get(i);
+                if (string.isEmpty()){
+                    continue;
+                }
+                if (i != 0){
+                    stringBuilder.append(",");
+                }
+                stringBuilder.append(string);
+            }
+        }
         return stringBuilder.toString();
     }
 }

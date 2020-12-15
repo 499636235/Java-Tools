@@ -1,0 +1,7 @@
+   DOCID, \
+   BUSSNOTYPE, \
+   BUSSNO, \
+   DOCCODE, \
+   BUSSTYPE, \
+   SUBTYPE, \
+   RELAFLAG, \
