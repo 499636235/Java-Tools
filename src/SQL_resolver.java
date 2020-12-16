@@ -20,7 +20,7 @@ public class SQL_resolver {
 
         try {
             setSql();
-            function2(sql);
+            resolveOneSql(sql);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -32,86 +32,107 @@ public class SQL_resolver {
     }
 
 
-    private String function1(String subSql, int subIndex) {
+    //目前的功能：获取subSql中 从下标subIndex处开始的 一个不含"\s"(空字符)的字符串
+    private String getNotNullWord(String subSql, int subIndex) {
         StringBuilder word = new StringBuilder("");
         String tempstr = null;
-        String tempstr2 = null;
         for (int i = subIndex; i < subSql.length(); i++) {
             tempstr = subSql.substring(i, i + 1);
             if (!tempstr.matches("\\s")) {
                 word.append(tempstr);
                 continue;
             }
-
-
             break;
-
-
-//            tempstr2=word.toString();
-//            if(tempstr2.toUpperCase().equals("SELECT")){
-//
-//            }
-//            if(tempstr2.toUpperCase().equals("FROM")){
-//
-//            }
-//            System.out.println(word.toString());
-
-
         }
-//        System.out.println(word.toString());
         return word.toString();
     }
 
-    private void function2(String subSql) {
+    private void resolveOneSql(String subSql) {
         int j = 0;
-
         String temp1 = "";
-//        String temp1 = function1(sql, index);
+
 
         //SELECT
         do {
-            temp1 = function1(sql, index + temp1.length() + j);
-            j = 1;
-            index += temp1.length() + j;
+            temp1 = getNotNullWord(sql, index);
+            index += temp1.length() + 1;
             System.out.println(temp1);
-        } while (!temp1.toUpperCase().equals("SELECT"));
+        } while (!temp1.toUpperCase().equals("SELECT") && index < subSql.length());
+
 
         //FROM
         do {
-            temp1 = function1(sql, index);
+            temp1 = getNotNullWord(sql, index);
             index += temp1.length() + 1;
             System.out.println(temp1);
-        } while (!temp1.toUpperCase().equals("FROM"));
+        } while (!temp1.toUpperCase().equals("FROM") && index < subSql.length());
 
 
         //JOIN
         do {
-            temp1 = function1(sql, index);
+            temp1 = getNotNullWord(sql, index);
             index += temp1.length() + 1;
             System.out.println(temp1);
 
             //MAIN_TABLE
-            if (main_table_alias == null){
-                if (main_table == null){
+            if (main_table_alias == null) {
+                if (main_table == null) {
                     if (temp1.matches("soochow_data\\.(\\w)+")) {
                         main_table = getMatchStrs(temp1, "soochow_data\\.(\\w)+").get(0);
                     }
-                }else{
+                } else {
                     if (temp1.matches("\\w+")) {
                         main_table_alias = temp1;
                     }
                 }
             }
 
+        } while (!temp1.toUpperCase().equals("JOIN") && index < subSql.length());
 
-        } while (!temp1.toUpperCase().equals("JOIN"));
 
-//        join();
-//        where();
+        //ON
+        do {
+            temp1 = getNotNullWord(sql, index);
+            index += temp1.length() + 1;
+            System.out.println(temp1);
+
+            //SUB_TABLE
+            if (sub_table_alias == null) {
+                if (sub_table == null) {
+                    if (temp1.matches("soochow_data\\.(\\w)+")) {
+                        sub_table = getMatchStrs(temp1, "soochow_data\\.(\\w)+").get(0);
+                    }
+                } else {
+                    if (temp1.matches("\\w+")) {
+                        sub_table_alias = temp1;
+                    }
+                }
+            }
+
+        } while (!temp1.toUpperCase().equals("ON") && index < subSql.length());
+
+        //关联条件开始处下标
+        int linkStart = index;
+
+        //WHERE
+        do {
+            temp1 = getNotNullWord(sql, index);
+            index += temp1.length() + 1;
+            System.out.println(temp1);
+
+
+
+        } while (!temp1.toUpperCase().equals("WHERE") && index < subSql.length());
+
+        //关联条件结束处下标
+        int linkEnd = index-6;
+
+        System.out.println("关联条件:"+sql.substring(linkStart,linkEnd));
 
     }
 
 
+    //从文件读取SQL并赋值给全局变量:sql
     public String setSql() throws Exception {
         File testFilePath = new File("D:\\Development\\ideaWorkSpace\\Java-Tools\\src\\ToolWorkSpace\\SQL_resolver\\test");
         File testFile = testFilePath.listFiles()[0];
@@ -130,6 +151,7 @@ public class SQL_resolver {
     }
 
 
+    //从str中找到匹配正则表达式reg的字符串list
     public List<String> getMatchStrs(String str, String reg) {
         Pattern patten = Pattern.compile(reg);//编译正则表达式
         Matcher matcher = patten.matcher(str);// 指定要匹配的字符串
