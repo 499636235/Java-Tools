@@ -30,7 +30,7 @@ public class SQL_resolver {
 
 
     //目前的功能：获取subSql中 从下标subIndex处开始的 一个不含"\s"(空字符)的字符串
-    private String getNotNullWord(String subSql, int subIndex) {
+    private String getWholeWord(String subSql, int subIndex) {
         StringBuilder word = new StringBuilder("");
         String tempstr = null;
         for (int i = subIndex; i < subSql.length(); i++) {
@@ -51,7 +51,7 @@ public class SQL_resolver {
 
         //SELECT
         do {
-            temp1 = getNotNullWord(sql, index);
+            temp1 = getWholeWord(sql, index);
             index += temp1.length() + 1;
             System.out.println(temp1);
         } while (!temp1.toUpperCase().equals("SELECT") && index < subSql.length());
@@ -59,7 +59,7 @@ public class SQL_resolver {
 
         //FROM
         do {
-            temp1 = getNotNullWord(sql, index);
+            temp1 = getWholeWord(sql, index);
             index += temp1.length() + 1;
             System.out.println(temp1);
         } while (!temp1.toUpperCase().equals("FROM") && index < subSql.length());
@@ -67,7 +67,7 @@ public class SQL_resolver {
 
         //JOIN
         do {
-            temp1 = getNotNullWord(sql, index);
+            temp1 = getWholeWord(sql, index);
             index += temp1.length() + 1;
             System.out.println(temp1);
 
@@ -89,7 +89,7 @@ public class SQL_resolver {
 
         //ON
         do {
-            temp1 = getNotNullWord(sql, index);
+            temp1 = getWholeWord(sql, index);
             index += temp1.length() + 1;
             System.out.println(temp1);
 
@@ -113,7 +113,7 @@ public class SQL_resolver {
 
         //WHERE
         do {
-            temp1 = getNotNullWord(sql, index);
+            temp1 = getWholeWord(sql, index);
             index += temp1.length() + 1;
             System.out.println(temp1);
 
@@ -130,27 +130,43 @@ public class SQL_resolver {
     private void resolveOneSql2(String subSql) {
         int j = 0;
         String temp1 = "";
-        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", ""};
+        //关键字数组
+        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "END"};
+        //下一个要匹配的关键字(对应的下标)
         int keywordIndex = 0;
 
         List<String> wordList = new ArrayList<>();
+        List<Integer> wordIndexList = new ArrayList<>();
         int linkStart = 0;
         int linkEnd = 0;
 
-        while (index < subSql.length() && keywordIndex < keywordArray.length) {
-            temp1 = getNotNullWord(sql, index);
-            index += temp1.length() + 1;
+        while (index < subSql.length()) {
+            //获取下一个完整的词
+            temp1 = getWholeWord(sql, index);
 
-            wordList.add(temp1);
-
-            // 找关键字 只有找到当前关键字才能找下一个关键字
-            if (temp1.toUpperCase().equals(keywordArray[keywordIndex])) {
-                keywordIndex++;
-                continue;
+            //过滤空字符
+            if (!temp1.equals("")) {
+                //把整词加入List
+                wordList.add(temp1);
+                wordIndexList.add(index);
+                //游标推进
+                index += temp1.length();
+            } else {
+                index += 1;
             }
+        }
+
+
+        int i = 0;
+        while (keywordIndex < keywordArray.length && i < wordList.size()) {
+
+            temp1 = wordList.get(i);
+
+
+
 
             // FROM 与 JOIN 之间为 MAIN_TABLE
-            if (keywordIndex == 2) {
+            if (keywordArray[keywordIndex].equals("JOIN")) {
                 //MAIN_TABLE
                 if (main_table_alias == null) {
                     if (main_table == null) {
@@ -166,7 +182,7 @@ public class SQL_resolver {
             }
 
             // JOIN 与 ON 之间为 SUB_TABLE
-            if (keywordIndex == 3) {
+            if (keywordArray[keywordIndex].equals("ON")) {
                 //SUB_TABLE
                 if (sub_table_alias == null) {
                     if (sub_table == null) {
@@ -182,25 +198,37 @@ public class SQL_resolver {
             }
 
             // ON 与 WHERE 之间为 关联条件
-            if (keywordIndex == 4 && linkStart == 0) {
+            if (keywordArray[keywordIndex].equals("WHERE") && linkStart == 0) {
                 //关联条件开始处下标
-                linkStart = index - temp1.length() - 1;
+                linkStart = i;
             }
 
             // WHERE 之后的部分 暂时忽略
-            if (keywordIndex == 5 && linkEnd == 0) {
+            if (keywordArray[keywordIndex].equals("END") && linkEnd == 0) {
                 //关联条件结束处下标
-                linkEnd = index - temp1.length() - 1;
+                linkEnd = i;
             }
 
+
+
+            // 匹配关键字 只有当前关键字匹配成功时 才能继续匹配下一个关键字
+            if (temp1.toUpperCase().equals(keywordArray[keywordIndex])) {
+                keywordIndex++;
+            }
+            i++;
         }
 
         System.out.println(wordList);
+        System.out.println(wordIndexList);
         System.out.println("主表：" + main_table);
         System.out.println("主表别名：" + main_table_alias);
         System.out.println("子表：" + sub_table);
         System.out.println("子表别名：" + sub_table_alias);
-        System.out.println("关联条件:" + sql.substring(linkStart, linkEnd));
+        System.out.println("关联条件:");
+        for (int linkIndex = linkStart; linkIndex <= linkEnd; linkIndex++) {
+            System.out.print(wordList.get(linkIndex)+" ");
+        }
+
 
     }
 
