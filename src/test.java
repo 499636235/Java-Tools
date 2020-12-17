@@ -1,8 +1,13 @@
+import ToolWorkSpace.SQL_resolver.POJO.LinkTable;
+import ToolWorkSpace.SQL_resolver.POJO.TablePOJO;
+
 import javax.swing.filechooser.FileSystemView;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class test {
     public static void main(String[] args) {
@@ -12,6 +17,30 @@ public class test {
 //            System.out.println(inputFile.getName());
 //        }
 
-        SQL_resolver sql_resolver = new SQL_resolver();
+
+
+//        SQL_resolver sql_resolver = new SQL_resolver();
+
+
+        TablePOJO a = new TablePOJO();
+        a.setTableName("njy1");
+
+        TablePOJO b = new TablePOJO();
+        b.setTableName("njy2");
+
+        LinkTable l = new LinkTable();
+        l.setLinkTablePOJO(b);
+
+        List<String> c = new ArrayList<>();
+        c.add("haha");
+
+        l.setLinkCondition(c);
+
+        List<LinkTable> lList = new ArrayList<>();
+        lList.add(l);
+
+        a.setLinkTableList(lList);
+
+        System.out.println(b.getLinkConditionWith(a));
     }
 }
