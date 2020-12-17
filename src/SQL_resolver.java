@@ -163,8 +163,6 @@ public class SQL_resolver {
             temp1 = wordList.get(i);
 
 
-
-
             // FROM 与 JOIN 之间为 MAIN_TABLE
             if (keywordArray[keywordIndex].equals("JOIN")) {
                 //MAIN_TABLE
@@ -206,9 +204,8 @@ public class SQL_resolver {
             // WHERE 之后的部分 暂时忽略
             if (keywordArray[keywordIndex].equals("END") && linkEnd == 0) {
                 //关联条件结束处下标
-                linkEnd = i;
+                linkEnd = i - 2;
             }
-
 
 
             // 匹配关键字 只有当前关键字匹配成功时 才能继续匹配下一个关键字
@@ -226,7 +223,7 @@ public class SQL_resolver {
         System.out.println("子表别名：" + sub_table_alias);
         System.out.println("关联条件:");
         for (int linkIndex = linkStart; linkIndex <= linkEnd; linkIndex++) {
-            System.out.print(wordList.get(linkIndex)+" ");
+            System.out.print(wordList.get(linkIndex) + " ");
         }
 
 
