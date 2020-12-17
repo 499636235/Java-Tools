@@ -20,14 +20,11 @@ public class SQL_resolver {
 
         try {
             setSql();
-            resolveOneSql(sql);
+            resolveOneSql2(sql);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("主表：" + main_table);
-        System.out.println("主表别名：" + main_table_alias);
-        System.out.println("子表：" + sub_table);
-        System.out.println("子表别名：" + sub_table_alias);
+
 
     }
 
@@ -121,13 +118,89 @@ public class SQL_resolver {
             System.out.println(temp1);
 
 
-
         } while (!temp1.toUpperCase().equals("WHERE") && index < subSql.length());
 
         //关联条件结束处下标
-        int linkEnd = index-6;
+        int linkEnd = index - 6;
 
-        System.out.println("关联条件:"+sql.substring(linkStart,linkEnd));
+        System.out.println("关联条件:" + sql.substring(linkStart, linkEnd));
+
+    }
+
+    private void resolveOneSql2(String subSql) {
+        int j = 0;
+        String temp1 = "";
+        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", ""};
+        int keywordIndex = 0;
+
+        List<String> wordList = new ArrayList<>();
+        int linkStart = 0;
+        int linkEnd = 0;
+
+        while (index < subSql.length() && keywordIndex < keywordArray.length) {
+            temp1 = getNotNullWord(sql, index);
+            index += temp1.length() + 1;
+
+            wordList.add(temp1);
+
+            // 找关键字 只有找到当前关键字才能找下一个关键字
+            if (temp1.toUpperCase().equals(keywordArray[keywordIndex])) {
+                keywordIndex++;
+                continue;
+            }
+
+            // FROM 与 JOIN 之间为 MAIN_TABLE
+            if (keywordIndex == 2) {
+                //MAIN_TABLE
+                if (main_table_alias == null) {
+                    if (main_table == null) {
+                        if (temp1.matches("soochow_data\\.(\\w)+")) {
+                            main_table = getMatchStrs(temp1, "soochow_data\\.(\\w)+").get(0);
+                        }
+                    } else {
+                        if (temp1.matches("\\w+")) {
+                            main_table_alias = temp1;
+                        }
+                    }
+                }
+            }
+
+            // JOIN 与 ON 之间为 SUB_TABLE
+            if (keywordIndex == 3) {
+                //SUB_TABLE
+                if (sub_table_alias == null) {
+                    if (sub_table == null) {
+                        if (temp1.matches("soochow_data\\.(\\w)+")) {
+                            sub_table = getMatchStrs(temp1, "soochow_data\\.(\\w)+").get(0);
+                        }
+                    } else {
+                        if (temp1.matches("\\w+")) {
+                            sub_table_alias = temp1;
+                        }
+                    }
+                }
+            }
+
+            // ON 与 WHERE 之间为 关联条件
+            if (keywordIndex == 4 && linkStart == 0) {
+                //关联条件开始处下标
+                linkStart = index - temp1.length() - 1;
+            }
+
+            // WHERE 之后的部分 暂时忽略
+            if (keywordIndex == 5 && linkEnd == 0) {
+                //关联条件结束处下标
+                linkEnd = index - temp1.length() - 1;
+            }
+
+        }
+
+        System.out.println(wordList);
+        System.out.println("主表：" + main_table);
+        System.out.println("主表别名：" + main_table_alias);
+        System.out.println("子表：" + sub_table);
+        System.out.println("子表别名：" + sub_table_alias);
+        System.out.println("关联条件:" + sql.substring(linkStart, linkEnd));
 
     }
 
