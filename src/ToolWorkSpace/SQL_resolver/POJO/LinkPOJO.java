@@ -19,11 +19,28 @@ public class LinkPOJO {
 
 
     public TablePOJO getOtherTablePOJO(TablePOJO tablePOJO) {
-        if (table1 == tablePOJO){
+        if (table1.getTableId().equals(tablePOJO.getTableId())) {
             return table2;
-        }else if (table2 == tablePOJO) {
+        } else if (table2.getTableId().equals(tablePOJO.getTableId())) {
             return table1;
         }
         return null;
+    }
+
+    public LinkPOJO(TablePOJO table1, TablePOJO table2, List<String> linkConditionList) {
+        this.table1 = table1;
+        this.table2 = table2;
+        this.linkConditionList = linkConditionList;
+        table1.addLinkPOJOList(this);
+        table2.addLinkPOJOList(this);
+    }
+
+    @Override
+    public String toString() {
+        return "LinkPOJO{" +
+                "table1=" + table1.getTableName() +
+                ", table2=" + table2.getTableName() +
+                ", linkConditionList=" + linkConditionList +
+                '}';
     }
 }

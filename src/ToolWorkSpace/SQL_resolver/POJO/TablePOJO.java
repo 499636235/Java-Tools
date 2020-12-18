@@ -9,6 +9,9 @@ import java.util.List;
  */
 public class TablePOJO {
 
+    //表ID
+    private Integer tableId = null;
+
     //表名
     private String tableName = null;
 
@@ -47,29 +50,79 @@ public class TablePOJO {
         return resultList;
     }
 
+
     /**
-     * (方案2)
-     * 获取与另一张表 tablePOJO 的 双表关联对象
+     * 为了好看而已
      *
      * @param tablePOJO
      * @return
      */
     public LinkPOJO getLinkPOJOWith(TablePOJO tablePOJO) {
-        LinkPOJO resultList = null;
+        return getLinkPOJOWith(tablePOJO, null);
+    }
+
+    /**
+     * (方案2)
+     * 获取与另一张表 tablePOJO 的 双表关联对象 linkPOJO
+     *
+     * @param tablePOJO
+     * @param linkHistory
+     * @return
+     */
+    public LinkPOJO getLinkPOJOWith(TablePOJO tablePOJO, List<Integer> linkHistory) {
+        LinkPOJO resultLinkPOJO = null;
+
+        // 关联轨迹
+        if (linkHistory == null) {
+            // 如果为空则初始化
+            linkHistory = new ArrayList<>();
+        }
+
+        //将当前递归的对象记录到关联轨迹中
+        linkHistory.add(tablePOJO.getTableId());
+
+        //遍历表 tablePOJO 的所有关联表
         for (LinkPOJO linkPOJO : tablePOJO.getLinkPOJOList()) {
-            //这个地方得改！如果出现另一张同名表就不对了！
-            if (linkPOJO.getOtherTablePOJO(tablePOJO).getTableName().equals(this.tableName)) {
+            //如果其中的一张关联表是 本表
+            if (linkPOJO.getOtherTablePOJO(tablePOJO).getTableId().equals(this.tableId)) {
+                //返回 双表关联对象 linkPOJO
                 return linkPOJO;
             }
         }
 
+        //遍历所有关联表后没有找到本表，则递归遍历关联表的关联表
         for (LinkPOJO linkPOJO : tablePOJO.getLinkPOJOList()) {
-            resultList = getLinkPOJOWith(linkPOJO.getOtherTablePOJO(tablePOJO));
-            if (resultList != null) {
-                return resultList;
+            //如果要递归的对象已经被递归过，则为了防止循环递归 直接跳过
+            if (linkHistory.contains(linkPOJO.getOtherTablePOJO(tablePOJO).getTableId())) {
+                continue;
+            }
+
+            //带上关联轨迹进入递归(防止迷路)
+            resultLinkPOJO = getLinkPOJOWith(linkPOJO.getOtherTablePOJO(tablePOJO), linkHistory);
+            //递归结束后如果有返回值则就是要找的对象
+            if (resultLinkPOJO != null) {
+                return resultLinkPOJO;
             }
         }
         return null;
+    }
+
+
+    public void addLinkPOJOList(LinkPOJO linkPOJO) {
+        this.linkPOJOList.add(linkPOJO);
+    }
+
+    public TablePOJO(Integer tableId, String tableName) {
+        this.tableId = tableId;
+        this.tableName = tableName;
+    }
+
+    public Integer getTableId() {
+        return tableId;
+    }
+
+    public void setTableId(Integer tableId) {
+        this.tableId = tableId;
     }
 
     public String getTableName() {
@@ -95,4 +148,6 @@ public class TablePOJO {
     public void setLinkPOJOList(List<LinkPOJO> linkPOJOList) {
         this.linkPOJOList = linkPOJOList;
     }
+
+
 }
