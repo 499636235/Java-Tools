@@ -2,8 +2,14 @@ package ToolWorkSpace.SQL_resolver.POJO;
 
 import java.util.List;
 
+/**
+ * 关联表对象
+ */
 public class LinkTable {
+    
     private TablePOJO linkTablePOJO;
+
+    //关联条件(对象类 未定,暂时为List<String>)
     private List<String> linkCondition;
 
     public TablePOJO getLinkTablePOJO() {
