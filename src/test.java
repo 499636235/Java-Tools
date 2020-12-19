@@ -12,7 +12,7 @@ import java.util.List;
 
 public class test {
     public static void main(String[] args) {
-        test4();
+        test5();
     }
 
     public static void test1() {
@@ -29,9 +29,9 @@ public class test {
 
 
     public static void test3() {
-        TablePOJO a = new TablePOJO(1,"njy1");
+        TablePOJO a = new TablePOJO(1, "njy1");
 
-        TablePOJO b = new TablePOJO(2,"njy2");
+        TablePOJO b = new TablePOJO(2, "njy2");
 
         LinkTable l = new LinkTable();
         l.setLinkTablePOJO(b);
@@ -50,11 +50,11 @@ public class test {
     }
 
     public static void test4() {
-        TablePOJO a = new TablePOJO(1,"njy1");
+        TablePOJO a = new TablePOJO(1, "njy1");
 
-        TablePOJO b = new TablePOJO(2,"njy2");
+        TablePOJO b = new TablePOJO(2, "njy2");
 
-        TablePOJO c = new TablePOJO(3,"njy3");
+        TablePOJO c = new TablePOJO(3, "njy3");
 
         List<String> list1 = new ArrayList<>();
         list1.add("haha1");
@@ -67,5 +67,25 @@ public class test {
 
 
         System.out.println(a.getLinkPOJOWith(c));
+    }
+
+    public static void test5() {
+        TablePOJO a = new TablePOJO(1, "njy1");
+
+        TablePOJO b = new TablePOJO(2, "njy2");
+
+        TablePOJO c = new TablePOJO(3, "njy3");
+
+        List<String> list1 = new ArrayList<>();
+        list1.add("haha1");
+
+        List<String> list2 = new ArrayList<>();
+        list2.add("haha2");
+
+        LinkPOJO lab = new LinkPOJO(a, b, list1);
+        LinkPOJO lbc = new LinkPOJO(b, c, list2);
+
+
+        System.out.println(a.getLinkPOJOListTo(c));
     }
 }
