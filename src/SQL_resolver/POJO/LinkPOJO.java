@@ -1,4 +1,4 @@
-package ToolWorkSpace.SQL_resolver.POJO;
+package SQL_resolver.POJO;
 
 import java.util.ArrayList;
 import java.util.List;

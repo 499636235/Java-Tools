@@ -1,12 +1,9 @@
-import ToolWorkSpace.SQL_resolver.POJO.LinkPOJO;
-import ToolWorkSpace.SQL_resolver.POJO.LinkTable;
-import ToolWorkSpace.SQL_resolver.POJO.TablePOJO;
+import SQL_resolver.POJO.LinkPOJO;
+import SQL_resolver.POJO.LinkTable;
+import SQL_resolver.POJO.TablePOJO;
+import SQL_resolver.Resolver;
 
-import javax.swing.filechooser.FileSystemView;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +21,7 @@ public class test {
     }
 
     public static void test2() {
-        SQL_resolver sql_resolver = new SQL_resolver();
+        Resolver sql_resolver = new Resolver();
     }
 
     public static void test3() {

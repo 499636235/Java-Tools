@@ -1,4 +1,4 @@
-package ToolWorkSpace.SQL_resolver.POJO;
+package SQL_resolver.POJO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -135,7 +135,6 @@ public class TablePOJO {
     public void addLinkPOJOList(LinkPOJO linkPOJO) {
         this.linkPOJOList.add(linkPOJO);
     }
-
 
     public TablePOJO(Integer tableId, String tableName) {
         this.tableId = tableId;

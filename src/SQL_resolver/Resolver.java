@@ -1,3 +1,5 @@
+package SQL_resolver;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,7 +13,7 @@ import java.util.regex.Pattern;
  * SQL解析器(开发中)
  * 目标是解析SQL中的所有表之间的关联条件
  */
-public class SQL_resolver {
+public class Resolver {
 
     private String main_table = null;
 
@@ -35,17 +37,13 @@ public class SQL_resolver {
     /**
      * 启动器 (调试用)
      */
-    public SQL_resolver() {
-
-
+    public Resolver() {
         try {
             setSql();
             resolveOneSql2(sql);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
     }
 
     /**
@@ -74,88 +72,88 @@ public class SQL_resolver {
      *
      * @param subSql
      */
-    private void resolveOneSql(String subSql) {
-        int j = 0;
-        String temp1 = "";
-
-
-        //SELECT
-        do {
-            temp1 = getWholeWord(sql, index);
-            index += temp1.length() + 1;
-            System.out.println(temp1);
-        } while (!temp1.toUpperCase().equals("SELECT") && index < subSql.length());
-
-
-        //FROM
-        do {
-            temp1 = getWholeWord(sql, index);
-            index += temp1.length() + 1;
-            System.out.println(temp1);
-        } while (!temp1.toUpperCase().equals("FROM") && index < subSql.length());
-
-
-        //JOIN
-        do {
-            temp1 = getWholeWord(sql, index);
-            index += temp1.length() + 1;
-            System.out.println(temp1);
-
-            //MAIN_TABLE
-            if (main_table_alias == null) {
-                if (main_table == null) {
-                    if (temp1.matches("soochow_data\\.(\\w)+")) {
-                        main_table = getMatchStrs(temp1, "soochow_data\\.(\\w)+").get(0);
-                    }
-                } else {
-                    if (temp1.matches("\\w+")) {
-                        main_table_alias = temp1;
-                    }
-                }
-            }
-
-        } while (!temp1.toUpperCase().equals("JOIN") && index < subSql.length());
-
-
-        //ON
-        do {
-            temp1 = getWholeWord(sql, index);
-            index += temp1.length() + 1;
-            System.out.println(temp1);
-
-            //SUB_TABLE
-            if (sub_table_alias == null) {
-                if (sub_table == null) {
-                    if (temp1.matches("soochow_data\\.(\\w)+")) {
-                        sub_table = getMatchStrs(temp1, "soochow_data\\.(\\w)+").get(0);
-                    }
-                } else {
-                    if (temp1.matches("\\w+")) {
-                        sub_table_alias = temp1;
-                    }
-                }
-            }
-
-        } while (!temp1.toUpperCase().equals("ON") && index < subSql.length());
-
-        //关联条件开始处下标
-        int linkStart = index;
-
-        //WHERE
-        do {
-            temp1 = getWholeWord(sql, index);
-            index += temp1.length() + 1;
-            System.out.println(temp1);
-
-
-        } while (!temp1.toUpperCase().equals("WHERE") && index < subSql.length());
-
-        //关联条件结束处下标
-        int linkEnd = index - 6;
-
-        System.out.println("关联条件:" + sql.substring(linkStart, linkEnd));
-
-    }
+//    private void resolveOneSql(String subSql) {
+//        int j = 0;
+//        String temp1 = "";
+//
+//
+//        //SELECT
+//        do {
+//            temp1 = getWholeWord(sql, index);
+//            index += temp1.length() + 1;
+//            System.out.println(temp1);
+//        } while (!temp1.toUpperCase().equals("SELECT") && index < subSql.length());
+//
+//
+//        //FROM
+//        do {
+//            temp1 = getWholeWord(sql, index);
+//            index += temp1.length() + 1;
+//            System.out.println(temp1);
+//        } while (!temp1.toUpperCase().equals("FROM") && index < subSql.length());
+//
+//
+//        //JOIN
+//        do {
+//            temp1 = getWholeWord(sql, index);
+//            index += temp1.length() + 1;
+//            System.out.println(temp1);
+//
+//            //MAIN_TABLE
+//            if (main_table_alias == null) {
+//                if (main_table == null) {
+//                    if (temp1.matches("soochow_data\\.(\\w)+")) {
+//                        main_table = getMatchStrs(temp1, "soochow_data\\.(\\w)+").get(0);
+//                    }
+//                } else {
+//                    if (temp1.matches("\\w+")) {
+//                        main_table_alias = temp1;
+//                    }
+//                }
+//            }
+//
+//        } while (!temp1.toUpperCase().equals("JOIN") && index < subSql.length());
+//
+//
+//        //ON
+//        do {
+//            temp1 = getWholeWord(sql, index);
+//            index += temp1.length() + 1;
+//            System.out.println(temp1);
+//
+//            //SUB_TABLE
+//            if (sub_table_alias == null) {
+//                if (sub_table == null) {
+//                    if (temp1.matches("soochow_data\\.(\\w)+")) {
+//                        sub_table = getMatchStrs(temp1, "soochow_data\\.(\\w)+").get(0);
+//                    }
+//                } else {
+//                    if (temp1.matches("\\w+")) {
+//                        sub_table_alias = temp1;
+//                    }
+//                }
+//            }
+//
+//        } while (!temp1.toUpperCase().equals("ON") && index < subSql.length());
+//
+//        //关联条件开始处下标
+//        int linkStart = index;
+//
+//        //WHERE
+//        do {
+//            temp1 = getWholeWord(sql, index);
+//            index += temp1.length() + 1;
+//            System.out.println(temp1);
+//
+//
+//        } while (!temp1.toUpperCase().equals("WHERE") && index < subSql.length());
+//
+//        //关联条件结束处下标
+//        int linkEnd = index - 6;
+//
+//        System.out.println("关联条件:" + sql.substring(linkStart, linkEnd));
+//
+//    }
 
     /**
      * 解析一段只有一个SELECT的SQL (Demo2)
@@ -163,40 +161,34 @@ public class SQL_resolver {
      * @param subSql
      */
     private void resolveOneSql2(String subSql) {
-        int j = 0;
-        String temp1 = "";
-        //关键字数组
-        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "END"};
-        //下一个要匹配的关键字(对应的下标)
-        int keywordIndex = 0;
+        String temp1 = "";//临时字符串对象
 
-        List<String> wordList = new ArrayList<>();
-        List<Integer> wordIndexList = new ArrayList<>();
+        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "END"};//关键字数组
+
+        int keywordIndex = 0;//下一个要匹配的关键字(对应的下标)
+
+        List<String> wordList = new ArrayList<>();//存放 SQL中的每个整词 的 List
+
+        List<Integer> wordIndexList = new ArrayList<>();//SQL中的每个整词 起始处 所对应的下标
+
         int linkStart = 0;
         int linkEnd = 0;
 
         while (index < subSql.length()) {
-            //获取下一个完整的词
-            temp1 = getWholeWord(sql, index);
-
-            //过滤空字符
-            if (!temp1.equals("")) {
-                //把整词加入List
-                wordList.add(temp1);
-                wordIndexList.add(index);
-                //游标推进
-                index += temp1.length();
+            temp1 = getWholeWord(sql, index);//获取下一个完整的词
+            if (!temp1.equals("")) {//过滤空字符
+                wordList.add(temp1);//把整词加入List
+                wordIndexList.add(index);//把整词起始处的下标加入List
+                index += temp1.length();//游标推进
             } else {
                 index += 1;
             }
         }
 
-
         int i = 0;
         while (keywordIndex < keywordArray.length && i < wordList.size()) {
 
             temp1 = wordList.get(i);
-
 
             // FROM 与 JOIN 之间为 MAIN_TABLE
             if (keywordArray[keywordIndex].equals("JOIN")) {
@@ -285,6 +277,8 @@ public class SQL_resolver {
         InputStreamReader templateStreamReader = new InputStreamReader(new FileInputStream(testFile), "UTF-8");
         BufferedReader templateBufferReader = new BufferedReader(templateStreamReader);
         while ((lineTxt = templateBufferReader.readLine()) != null) {
+            lineTxt.replaceAll("\\("," \\( ");
+            lineTxt.replaceAll("\\)"," \\) ");
             sqlStringBuilder.append(lineTxt).append("\n");
         }
         templateStreamReader.close();
