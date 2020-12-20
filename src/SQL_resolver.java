@@ -232,7 +232,12 @@ public class SQL_resolver {
 
     //从文件读取SQL并赋值给全局变量:sql
     public String setSql() throws Exception {
-        File testFilePath = new File("D:\\Development\\ideaWorkSpace\\Java-Tools\\src\\ToolWorkSpace\\SQL_resolver\\test");
+        File testFilePath = null;
+
+        testFilePath = new File("D:\\Development\\ideaWorkSpace\\Java-Tools\\src\\ToolWorkSpace\\SQL_resolver\\test");
+        if (testFilePath.listFiles() == null){
+            testFilePath = new File("D:\\Development\\ideaWorkplace\\Java-Tools\\src\\ToolWorkSpace\\SQL_resolver\\test");
+        }
         File testFile = testFilePath.listFiles()[0];
 
         StringBuilder sqlStringBuilder = new StringBuilder("");

@@ -12,7 +12,7 @@ import java.util.List;
 
 public class test {
     public static void main(String[] args) {
-        test5();
+        test2();
     }
 
     public static void test1() {
