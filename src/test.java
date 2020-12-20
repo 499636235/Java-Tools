@@ -1,5 +1,5 @@
-import SQL_resolver.POJO.LinkPOJO;
-import SQL_resolver.POJO.LinkTable;
+import SQL_resolver.POJO.JoinPOJO;
+import SQL_resolver.POJO.JoinTable;
 import SQL_resolver.POJO.TablePOJO;
 import SQL_resolver.Resolver;
 
@@ -29,20 +29,20 @@ public class test {
 
         TablePOJO b = new TablePOJO(2, "njy2");
 
-        LinkTable l = new LinkTable();
-        l.setLinkTablePOJO(b);
+        JoinTable l = new JoinTable();
+        l.setJoinTablePOJO(b);
 
         List<String> c = new ArrayList<>();
         c.add("haha");
 
-        l.setLinkCondition(c);
+        l.setJoinCondition(c);
 
-        List<LinkTable> lList = new ArrayList<>();
+        List<JoinTable> lList = new ArrayList<>();
         lList.add(l);
 
-        a.setLinkTableList(lList);
+        a.setJoinTableList(lList);
 
-        System.out.println(b.getLinkConditionWith(a));
+        System.out.println(b.getJoinConditionWith(a));
     }
 
     public static void test4() {
@@ -58,10 +58,10 @@ public class test {
         List<String> list2 = new ArrayList<>();
         list2.add("haha2");
 
-        LinkPOJO lab = new LinkPOJO(a, b, list1);
-        LinkPOJO lbc = new LinkPOJO(b, c, list2);
+        JoinPOJO lab = new JoinPOJO(a, b, list1);
+        JoinPOJO lbc = new JoinPOJO(b, c, list2);
 
 
-        System.out.println(a.getLinkPOJOListTo(c));
+        System.out.println(a.getJoinPOJOListTo(c));
     }
 }

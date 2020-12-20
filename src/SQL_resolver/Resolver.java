@@ -137,8 +137,8 @@ public class Resolver {
         String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "END"};//关键字数组
         int keywordIndex = 0;//下一个要匹配的关键字(在 keywordArray 中对应的下标)
 
-        int linkStart = 0;//关联条件开始处下标
-        int linkEnd = 0;//关联条件结束处下标
+        int joinStart = 0;//关联条件开始处下标
+        int joinEnd = 0;//关联条件结束处下标
 
 
         int i = 0;
@@ -196,15 +196,15 @@ public class Resolver {
             }
 
             // ON 与 WHERE 之间为 关联条件
-            if (keywordArray[keywordIndex].equals("WHERE") && linkStart == 0) {
+            if (keywordArray[keywordIndex].equals("WHERE") && joinStart == 0) {
                 //关联条件开始处下标
-                linkStart = i;
+                joinStart = i;
             }
 
             // WHERE 之后的部分 暂时忽略
-            if (keywordArray[keywordIndex].equals("END") && linkEnd == 0) {
+            if (keywordArray[keywordIndex].equals("END") && joinEnd == 0) {
                 //关联条件结束处下标
-                linkEnd = i - 2;
+                joinEnd = i - 2;
             }
 
 
@@ -220,15 +220,15 @@ public class Resolver {
 
         // TODO 把表转换成 TablePOJO
 
-        // TODO 建立所有 TablePOJO 之间的 LinkPOJO
+        // TODO 建立所有 TablePOJO 之间的 JoinPOJO
 
         System.out.println("主表：" + main_table);
         System.out.println("主表别名：" + main_table_alias);
         System.out.println("子表：" + sub_table);
         System.out.println("子表别名：" + sub_table_alias);
         System.out.print("关联条件：");
-        for (int linkIndex = linkStart; linkIndex <= linkEnd; linkIndex++) {
-            System.out.print(wordList.get(linkIndex) + " ");
+        for (int joinIndex = joinStart; joinIndex <= joinEnd; joinIndex++) {
+            System.out.print(wordList.get(joinIndex) + " ");
         }
 
 
@@ -354,7 +354,7 @@ public class Resolver {
 //        } while (!temp1.toUpperCase().equals("ON") && index < subSql.length());
 //
 //        //关联条件开始处下标
-//        int linkStart = index;
+//        int joinStart = index;
 //
 //        //WHERE
 //        do {
@@ -366,9 +366,9 @@ public class Resolver {
 //        } while (!temp1.toUpperCase().equals("WHERE") && index < subSql.length());
 //
 //        //关联条件结束处下标
-//        int linkEnd = index - 6;
+//        int joinEnd = index - 6;
 //
-//        System.out.println("关联条件:" + sql.substring(linkStart, linkEnd));
+//        System.out.println("关联条件:" + sql.substring(joinStart, joinEnd));
 //
 //    }
 }

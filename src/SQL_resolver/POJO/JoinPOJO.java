@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * 双表关联对象
  */
-public class LinkPOJO {
+public class JoinPOJO {
 
     /**
      * 表1
@@ -21,10 +21,10 @@ public class LinkPOJO {
     /**
      * 关联条件
      */
-    private List<String> linkConditionList = new ArrayList<>();
+    private List<String> joinConditionList = new ArrayList<>();
 
     /**
-     * 获取 tablePOJO 在该 LinkPOJO 中关联的另一个 TablePOJO 对象
+     * 获取 tablePOJO 在该 JoinPOJO 中关联的另一个 TablePOJO 对象
      *
      * @param tablePOJO
      * @return TablePOJO
@@ -39,18 +39,18 @@ public class LinkPOJO {
     }
 
     /**
-     * 除了充当构造器的功能，还把该 LinkPOJO 加入了 这两个 tablePOJO 的 linkPOJOList 中
+     * 除了充当构造器的功能，还把该 JoinPOJO 加入了 这两个 tablePOJO 的 joinPOJOList 中
      *
      * @param table1
      * @param table2
-     * @param linkConditionList
+     * @param joinConditionList
      */
-    public LinkPOJO(TablePOJO table1, TablePOJO table2, List<String> linkConditionList) {
+    public JoinPOJO(TablePOJO table1, TablePOJO table2, List<String> joinConditionList) {
         this.table1 = table1;
         this.table2 = table2;
-        this.linkConditionList = linkConditionList;
-        table1.addLinkPOJOList(this);
-        table2.addLinkPOJOList(this);
+        this.joinConditionList = joinConditionList;
+        table1.addJoinPOJOList(this);
+        table2.addJoinPOJOList(this);
     }
 
     /**
@@ -60,10 +60,10 @@ public class LinkPOJO {
      */
     @Override
     public String toString() {
-        return "LinkPOJO{" +
+        return "JoinPOJO{" +
                 "table1=" + table1.getTableName() +
                 ", table2=" + table2.getTableName() +
-                ", linkConditionList=" + linkConditionList +
+                ", joinConditionList=" + joinConditionList +
                 '}';
     }
 }

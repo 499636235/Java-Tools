@@ -22,12 +22,12 @@ public class TablePOJO {
     /**
      * (方案1)关联表List
      */
-    private List<LinkTable> linkTableList = new ArrayList<>();
+    private List<JoinTable> joinTableList = new ArrayList<>();
 
     /**
      * (方案2)双表关联对象List
      */
-    private List<LinkPOJO> linkPOJOList = new ArrayList<>();
+    private List<JoinPOJO> joinPOJOList = new ArrayList<>();
 
 
     /**
@@ -38,16 +38,16 @@ public class TablePOJO {
      * @param tablePOJO
      * @return
      */
-    public List<String> getLinkConditionWith(TablePOJO tablePOJO) {
+    public List<String> getJoinConditionWith(TablePOJO tablePOJO) {
         List<String> resultList = null;
-        for (LinkTable linkTable : tablePOJO.getLinkTableList()) {
-            if (linkTable.getLinkTablePOJO().getTableName().equals(this.tableName)) {
-                return linkTable.getLinkCondition();
+        for (JoinTable joinTable : tablePOJO.getJoinTableList()) {
+            if (joinTable.getJoinTablePOJO().getTableName().equals(this.tableName)) {
+                return joinTable.getJoinCondition();
             }
         }
 
-        for (LinkTable linkTable : tablePOJO.getLinkTableList()) {
-            resultList = getLinkConditionWith(linkTable.getLinkTablePOJO());
+        for (JoinTable joinTable : tablePOJO.getJoinTableList()) {
+            resultList = getJoinConditionWith(joinTable.getJoinTablePOJO());
             if (resultList != null) {
                 return resultList;
             }
@@ -63,77 +63,77 @@ public class TablePOJO {
      * @param tablePOJO
      * @return
      */
-    public List<LinkPOJO> getLinkPOJOListTo(TablePOJO tablePOJO) {
-        return getLinkPOJOListTo(tablePOJO, null, null);
+    public List<JoinPOJO> getJoinPOJOListTo(TablePOJO tablePOJO) {
+        return getJoinPOJOListTo(tablePOJO, null, null);
     }
 
     /**
      * (方案2)
-     * 获取与另一张表 tablePOJO 的 双表关联对象 linkPOJOList
+     * 获取与另一张表 tablePOJO 的 双表关联对象 joinPOJOList
      *
      * @param tablePOJO
-     * @param linkHistory
+     * @param joinHistory
      * @return
      */
-    public List<LinkPOJO> getLinkPOJOListTo(TablePOJO tablePOJO, List<Integer> linkHistory, List<LinkPOJO> linkPOJOList) {
+    public List<JoinPOJO> getJoinPOJOListTo(TablePOJO tablePOJO, List<Integer> joinHistory, List<JoinPOJO> joinPOJOList) {
 
         // 双表关联对象 List
-        if (linkPOJOList == null) {
+        if (joinPOJOList == null) {
             // 如果为空则初始化
-            linkPOJOList = new ArrayList<>();
+            joinPOJOList = new ArrayList<>();
         }
 
         // 双表关联对象 List 的 长度
-        int linkNum = linkPOJOList.size();
+        int joinNum = joinPOJOList.size();
 
         // 关联轨迹
-        if (linkHistory == null) {
+        if (joinHistory == null) {
             // 如果为空则初始化
-            linkHistory = new ArrayList<>();
+            joinHistory = new ArrayList<>();
         }
 
 
         //将当前递归的对象记录到关联轨迹中(防止迷路)
-        linkHistory.add(tablePOJO.getTableId());
+        joinHistory.add(tablePOJO.getTableId());
 
         //遍历表 tablePOJO 的所有关联表
-        for (LinkPOJO linkPOJO : tablePOJO.getLinkPOJOList()) {
+        for (JoinPOJO joinPOJO : tablePOJO.getJoinPOJOList()) {
             //递归中止处
             //如果其中的一张关联表是 本表
-            if (linkPOJO.getOtherTablePOJO(tablePOJO).getTableId().equals(this.tableId)) {
-                //把这个 linkPOJO 加入 双表关联对象 List 中
-                linkPOJOList.add(linkPOJO);
-                //返回 双表关联对象 linkPOJO
-                return linkPOJOList;
+            if (joinPOJO.getOtherTablePOJO(tablePOJO).getTableId().equals(this.tableId)) {
+                //把这个 joinPOJO 加入 双表关联对象 List 中
+                joinPOJOList.add(joinPOJO);
+                //返回 双表关联对象 joinPOJO
+                return joinPOJOList;
             }
         }
 
         //遍历所有关联表后没有找到本表，则递归遍历关联表的关联表
-        for (LinkPOJO linkPOJO : tablePOJO.getLinkPOJOList()) {
+        for (JoinPOJO joinPOJO : tablePOJO.getJoinPOJOList()) {
             //如果要递归的对象已经被递归过，则为了防止循环递归 直接跳过
-            if (linkHistory.contains(linkPOJO.getOtherTablePOJO(tablePOJO).getTableId())) {
+            if (joinHistory.contains(joinPOJO.getOtherTablePOJO(tablePOJO).getTableId())) {
                 continue;
             }
 
             //带上关联轨迹进入递归(防止迷路)
-            linkPOJOList = getLinkPOJOListTo(linkPOJO.getOtherTablePOJO(tablePOJO), linkHistory, linkPOJOList);
-            //递归结束后如果List有增加新的linkPOJO，则说明末端已经关联到主表(递归中止了，已经开始回调)
-            if (linkPOJOList.size() > linkNum) {
-                //把这个 linkPOJO 加入 双表关联对象 List 中，记录整个关联轨迹
-                linkPOJOList.add(linkPOJO);
-                return linkPOJOList;
+            joinPOJOList = getJoinPOJOListTo(joinPOJO.getOtherTablePOJO(tablePOJO), joinHistory, joinPOJOList);
+            //递归结束后如果List有增加新的joinPOJO，则说明末端已经关联到主表(递归中止了，已经开始回调)
+            if (joinPOJOList.size() > joinNum) {
+                //把这个 joinPOJO 加入 双表关联对象 List 中，记录整个关联轨迹
+                joinPOJOList.add(joinPOJO);
+                return joinPOJOList;
             }
         }
         return null;
     }
 
     /**
-     * 把 linkPOJO 加入该 TablePOJO 的 linkPOJOList 中
+     * 把 joinPOJO 加入该 TablePOJO 的 joinPOJOList 中
      *
-     * @param linkPOJO
+     * @param joinPOJO
      */
-    public void addLinkPOJOList(LinkPOJO linkPOJO) {
-        this.linkPOJOList.add(linkPOJO);
+    public void addJoinPOJOList(JoinPOJO joinPOJO) {
+        this.joinPOJOList.add(joinPOJO);
     }
 
     public TablePOJO(Integer tableId, String tableName) {
@@ -157,20 +157,20 @@ public class TablePOJO {
         this.tableName = tableName;
     }
 
-    public List<LinkTable> getLinkTableList() {
-        return linkTableList;
+    public List<JoinTable> getJoinTableList() {
+        return joinTableList;
     }
 
-    public void setLinkTableList(List<LinkTable> linkTableList) {
-        this.linkTableList = linkTableList;
+    public void setJoinTableList(List<JoinTable> joinTableList) {
+        this.joinTableList = joinTableList;
     }
 
-    public List<LinkPOJO> getLinkPOJOList() {
-        return linkPOJOList;
+    public List<JoinPOJO> getJoinPOJOList() {
+        return joinPOJOList;
     }
 
-    public void setLinkPOJOList(List<LinkPOJO> linkPOJOList) {
-        this.linkPOJOList = linkPOJOList;
+    public void setJoinPOJOList(List<JoinPOJO> joinPOJOList) {
+        this.joinPOJOList = joinPOJOList;
     }
 
 
