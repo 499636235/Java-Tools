@@ -129,8 +129,9 @@ public class Resolver {
      * 理想设计是递归
      *
      * @param wordList
+     * @return int
      */
-    private void resolveOneSql2(List<String> wordList) {
+    private int resolveOneSql2(List<String> wordList) {
 
         String temp1 = "";//临时字符串对象
 
@@ -140,27 +141,45 @@ public class Resolver {
         int joinStart = 0;//关联条件开始处下标
         int joinEnd = 0;//关联条件结束处下标
 
+        int currentWordIndex = 0;//当前整词在 wordList 中的下标
 
-        int i = 0;
-        while (keywordIndex < keywordArray.length && i < wordList.size()) {
+        boolean ifSqlFlag = true;//标志当前 wordList 是否为SQL查询
+        boolean ifJudgeSqlFlag = false;//标志当前循环中是否已经判断过 wordList 是否为SQL查询
 
-            temp1 = wordList.get(i);
 
-            if (temp1.equals("(")) {
-                List<String> subList = wordList.subList(i + 1, wordList.size());
+        while (keywordIndex < keywordArray.length && currentWordIndex < wordList.size()) {
+
+            temp1 = wordList.get(currentWordIndex);//当前整词
+
+            if (temp1.equals("(")) {//如果是左括号则进入递归
+                List<String> subList = wordList.subList(currentWordIndex + 1, wordList.size());//参数为该左括号之后的sql
+
                 System.out.println(subList);
-                resolveOneSql2(subList);
+
+                currentWordIndex += resolveOneSql2(subList);//返回子SQL的整词个数，让上层递归跳过子SQL
+
+                //TODO 处理前面括号中的内容，判断是否为一张表，如果是表怎么关联？
             }
 
-            if (temp1.equals(")")) {
+
+            if (!ifJudgeSqlFlag&&!wordList.get(0).toUpperCase().equals("SELECT")) {//如果第一个词不是 SELECT
+                ifJudgeSqlFlag = true;//已经判断过 ifSqlFlag 的真假
+                ifSqlFlag = false;//不是SQL查询
+            }else{
+                ifJudgeSqlFlag = true;
+            }
+
+            if (!ifSqlFlag){//如果不是SQL查询
+                if (temp1.equals(")")) {//当遇到右括号时退出递归
+                    return currentWordIndex + 2;
+                }
+                currentWordIndex++;
+                continue;
+            }
+
+            if (temp1.equals(")")) {//当遇到右括号时退出递归，并且返回子SQL的整词个数，让上层递归跳过子SQL
                 break;
             }
-
-
-
-
-
-
 
 
             // FROM 与 JOIN 之间为 MAIN_TABLE
@@ -198,23 +217,21 @@ public class Resolver {
             // ON 与 WHERE 之间为 关联条件
             if (keywordArray[keywordIndex].equals("WHERE") && joinStart == 0) {
                 //关联条件开始处下标
-                joinStart = i;
+                joinStart = currentWordIndex;
             }
 
             // WHERE 之后的部分 暂时忽略
             if (keywordArray[keywordIndex].equals("END") && joinEnd == 0) {
                 //关联条件结束处下标
-                joinEnd = i - 2;
+                joinEnd = currentWordIndex - 2;
             }
-
-
 
 
             // 匹配关键字 只有当前关键字匹配成功时 才能继续匹配下一个关键字
             if (temp1.toUpperCase().equals(keywordArray[keywordIndex])) {
                 keywordIndex++;
             }
-            i++;
+            currentWordIndex++;
         }
 
 
@@ -222,6 +239,9 @@ public class Resolver {
 
         // TODO 建立所有 TablePOJO 之间的 JoinPOJO
 
+
+        System.out.println();
+        System.out.println("当前wordList:" + wordList.subList(0, currentWordIndex));
         System.out.println("主表：" + main_table);
         System.out.println("主表别名：" + main_table_alias);
         System.out.println("子表：" + sub_table);
@@ -230,8 +250,9 @@ public class Resolver {
         for (int joinIndex = joinStart; joinIndex <= joinEnd; joinIndex++) {
             System.out.print(wordList.get(joinIndex) + " ");
         }
+        System.out.println();
 
-
+        return currentWordIndex + 2;
     }
 
     /**
@@ -255,8 +276,9 @@ public class Resolver {
         InputStreamReader templateStreamReader = new InputStreamReader(new FileInputStream(testFile), "UTF-8");
         BufferedReader templateBufferReader = new BufferedReader(templateStreamReader);
         while ((lineTxt = templateBufferReader.readLine()) != null) {
-            lineTxt = lineTxt.replaceAll("\\(", " \\( ");
-            lineTxt = lineTxt.replaceAll("\\)", " \\) ");
+            lineTxt = lineTxt.replaceAll("\\(", " \\( ");//左括号两边加上空格，方便转换
+            lineTxt = lineTxt.replaceAll("\\)", " \\) ");//右括号两边加上空格，方便转换
+            lineTxt = lineTxt.replaceAll("(?i)select(\\s)?\\*(\\s)?from", "select \\* from");//把"select*from"拆开，方便转换
             sqlStringBuilder.append(lineTxt).append("\n");
         }
         templateStreamReader.close();
