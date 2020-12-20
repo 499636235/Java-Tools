@@ -9,17 +9,24 @@ import java.util.List;
  */
 public class TablePOJO {
 
-    //表ID
+    /**
+     * 表ID
+     */
     private Integer tableId = null;
 
-    //表名
+    /**
+     * 表名
+     */
     private String tableName = null;
 
-    //(方案1)关联表List
+    /**
+     * (方案1)关联表List
+     */
     private List<LinkTable> linkTableList = new ArrayList<>();
 
-
-    //(方案2)双表关联对象List
+    /**
+     * (方案2)双表关联对象List
+     */
     private List<LinkPOJO> linkPOJOList = new ArrayList<>();
 
 
@@ -50,78 +57,18 @@ public class TablePOJO {
         return resultList;
     }
 
-
     /**
-     * 为了好看而已
-     *
-     * @param tablePOJO
-     * @return
-     */
-    public LinkPOJO getLinkPOJOWith(TablePOJO tablePOJO) {
-        return getLinkPOJOWith(tablePOJO, null);
-    }
-
-    /**
-     * (方案2备份)
-     * 获取与另一张表 tablePOJO 的 双表关联对象 linkPOJO
-     *
-     * @param tablePOJO
-     * @param linkHistory
-     * @return
-     */
-    public LinkPOJO getLinkPOJOWith(TablePOJO tablePOJO, List<Integer> linkHistory) {
-        LinkPOJO resultLinkPOJO = null;
-
-        // 关联轨迹
-        if (linkHistory == null) {
-            // 如果为空则初始化
-            linkHistory = new ArrayList<>();
-        }
-
-        //将当前递归的对象记录到关联轨迹中
-        linkHistory.add(tablePOJO.getTableId());
-
-        //遍历表 tablePOJO 的所有关联表
-        for (LinkPOJO linkPOJO : tablePOJO.getLinkPOJOList()) {
-            //如果其中的一张关联表是 本表
-            if (linkPOJO.getOtherTablePOJO(tablePOJO).getTableId().equals(this.tableId)) {
-                //返回 双表关联对象 linkPOJO
-                return linkPOJO;
-            }
-        }
-
-        //遍历所有关联表后没有找到本表，则递归遍历关联表的关联表
-        for (LinkPOJO linkPOJO : tablePOJO.getLinkPOJOList()) {
-            //如果要递归的对象已经被递归过，则为了防止循环递归 直接跳过
-            if (linkHistory.contains(linkPOJO.getOtherTablePOJO(tablePOJO).getTableId())) {
-                continue;
-            }
-
-            //带上关联轨迹进入递归(防止迷路)
-            resultLinkPOJO = getLinkPOJOWith(linkPOJO.getOtherTablePOJO(tablePOJO), linkHistory);
-            //递归结束后如果有返回值则就是要找的对象
-            if (resultLinkPOJO != null) {
-                return resultLinkPOJO;
-            }
-        }
-        return null;
-    }
-
-
-
-    /**
-     * 为了好看而已
+     * 简化接口(方案2)
      *
      * @param tablePOJO
      * @return
      */
     public List<LinkPOJO> getLinkPOJOListTo(TablePOJO tablePOJO) {
-        return getLinkPOJOListTo(tablePOJO, null,null);
+        return getLinkPOJOListTo(tablePOJO, null, null);
     }
 
-
     /**
-     * (方案2 测试)
+     * (方案2)
      * 获取与另一张表 tablePOJO 的 双表关联对象 linkPOJOList
      *
      * @param tablePOJO
@@ -180,10 +127,15 @@ public class TablePOJO {
         return null;
     }
 
-
+    /**
+     * 把 linkPOJO 加入该 TablePOJO 的 linkPOJOList 中
+     *
+     * @param linkPOJO
+     */
     public void addLinkPOJOList(LinkPOJO linkPOJO) {
         this.linkPOJOList.add(linkPOJO);
     }
+
 
     public TablePOJO(Integer tableId, String tableName) {
         this.tableId = tableId;

@@ -12,7 +12,7 @@ import java.util.List;
 
 public class test {
     public static void main(String[] args) {
-        test2();
+        test4();
     }
 
     public static void test1() {
@@ -26,7 +26,6 @@ public class test {
     public static void test2() {
         SQL_resolver sql_resolver = new SQL_resolver();
     }
-
 
     public static void test3() {
         TablePOJO a = new TablePOJO(1, "njy1");
@@ -50,26 +49,6 @@ public class test {
     }
 
     public static void test4() {
-        TablePOJO a = new TablePOJO(1, "njy1");
-
-        TablePOJO b = new TablePOJO(2, "njy2");
-
-        TablePOJO c = new TablePOJO(3, "njy3");
-
-        List<String> list1 = new ArrayList<>();
-        list1.add("haha1");
-
-        List<String> list2 = new ArrayList<>();
-        list2.add("haha2");
-
-        LinkPOJO lab = new LinkPOJO(a, b, list1);
-        LinkPOJO lbc = new LinkPOJO(b, c, list2);
-
-
-        System.out.println(a.getLinkPOJOWith(c));
-    }
-
-    public static void test5() {
         TablePOJO a = new TablePOJO(1, "njy1");
 
         TablePOJO b = new TablePOJO(2, "njy2");

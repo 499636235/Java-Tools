@@ -7,14 +7,34 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * SQL解析器(开发中)
+ * 目标是解析SQL中的所有表之间的关联条件
+ */
 public class SQL_resolver {
+
     private String main_table = null;
+
     private String main_table_alias = null;
+
     private String sub_table = null;
+
     private String sub_table_alias = null;
+
+    /**
+     * 读取整段SQL时使用的游标
+     */
     private int index = 0;
+
+    /**
+     * 需要读取的整段SQL
+     */
     private String sql = null;
 
+
+    /**
+     * 启动器 (调试用)
+     */
     public SQL_resolver() {
 
 
@@ -28,8 +48,13 @@ public class SQL_resolver {
 
     }
 
-
-    //目前的功能：获取subSql中 从下标subIndex处开始的 一个不含"\s"(空字符)的字符串
+    /**
+     * 目前的功能：获取subSql中 从下标subIndex处开始的 一个不含"\s"(空字符)的字符串
+     *
+     * @param subSql
+     * @param subIndex
+     * @return
+     */
     private String getWholeWord(String subSql, int subIndex) {
         StringBuilder word = new StringBuilder("");
         String tempstr = null;
@@ -44,6 +69,11 @@ public class SQL_resolver {
         return word.toString();
     }
 
+    /**
+     * 解析一段只有一个SELECT的SQL (Demo1)
+     *
+     * @param subSql
+     */
     private void resolveOneSql(String subSql) {
         int j = 0;
         String temp1 = "";
@@ -127,6 +157,11 @@ public class SQL_resolver {
 
     }
 
+    /**
+     * 解析一段只有一个SELECT的SQL (Demo2)
+     *
+     * @param subSql
+     */
     private void resolveOneSql2(String subSql) {
         int j = 0;
         String temp1 = "";
@@ -229,13 +264,17 @@ public class SQL_resolver {
 
     }
 
-
-    //从文件读取SQL并赋值给全局变量:sql
+    /**
+     * 从文件读取SQL并赋值给全局变量:sql
+     *
+     * @return
+     * @throws Exception
+     */
     public String setSql() throws Exception {
         File testFilePath = null;
 
         testFilePath = new File("D:\\Development\\ideaWorkSpace\\Java-Tools\\src\\ToolWorkSpace\\SQL_resolver\\test");
-        if (testFilePath.listFiles() == null){
+        if (testFilePath.listFiles() == null) {
             testFilePath = new File("D:\\Development\\ideaWorkplace\\Java-Tools\\src\\ToolWorkSpace\\SQL_resolver\\test");
         }
         File testFile = testFilePath.listFiles()[0];
@@ -253,8 +292,13 @@ public class SQL_resolver {
         return sqlStringBuilder.toString();
     }
 
-
-    //从str中找到匹配正则表达式reg的字符串list
+    /**
+     * 从str中找到匹配正则表达式reg的字符串list
+     *
+     * @param str
+     * @param reg
+     * @return
+     */
     public List<String> getMatchStrs(String str, String reg) {
         Pattern patten = Pattern.compile(reg);//编译正则表达式
         Matcher matcher = patten.matcher(str);// 指定要匹配的字符串
