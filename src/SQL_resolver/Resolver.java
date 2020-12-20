@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -92,7 +93,19 @@ public class Resolver {
             }
         }
 
-        System.out.println(wordList);
+        //测试输出
+        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "AND"};//关键字数组
+        List<String> keywordList = Arrays.asList(keywordArray);
+        for (String s : wordList) {
+            if (keywordList.contains(s.toUpperCase())) {
+                System.out.print("\n");
+            }
+
+            System.out.print(s + " ");
+
+        }
+        System.out.println();
+//        System.out.println(wordList);
 //        System.out.println(wordIndexList);
 
         return wordList;
@@ -110,9 +123,9 @@ public class Resolver {
 
         String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "END"};//关键字数组
 
-        int keywordIndex = 0;//下一个要匹配的关键字(对应的下标)
+        int keywordIndex = 0;//下一个要匹配的关键字(在 keywordArray 中对应的下标)
 
-        List<String> wordList = getWordList(subSql);
+        List<String> wordList = getWordList(subSql);//获取 SQL 转换成的 整词List
 
         int linkStart = 0;
         int linkEnd = 0;
@@ -184,7 +197,7 @@ public class Resolver {
         System.out.println("主表别名：" + main_table_alias);
         System.out.println("子表：" + sub_table);
         System.out.println("子表别名：" + sub_table_alias);
-        System.out.println("关联条件:");
+        System.out.print("关联条件：");
         for (int linkIndex = linkStart; linkIndex <= linkEnd; linkIndex++) {
             System.out.print(wordList.get(linkIndex) + " ");
         }
