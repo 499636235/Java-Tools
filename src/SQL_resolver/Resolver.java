@@ -41,7 +41,7 @@ public class Resolver {
     public Resolver() {
         try {
             setSql();
-            resolveOneSql2(sql);
+            resolveWhileSql(sql);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -111,30 +111,57 @@ public class Resolver {
         return wordList;
     }
 
-
     /**
-     * 解析一段只有一个SELECT的SQL (Demo2)
+     * 解析整段SQL
      *
      * @param subSql
      */
-    private void resolveOneSql2(String subSql) {
+    public void resolveWhileSql(String subSql) {
+
+        List<String> wordList = getWordList(subSql);//获取 SQL 转换成的 整词List
+
+        resolveOneSql2(wordList);//递归解析SQL
+
+    }
+
+    /**
+     * 解析一段只有一个SELECT的SQL (Demo2)
+     * 理想设计是递归
+     *
+     * @param wordList
+     */
+    private void resolveOneSql2(List<String> wordList) {
 
         String temp1 = "";//临时字符串对象
 
         String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "END"};//关键字数组
-
         int keywordIndex = 0;//下一个要匹配的关键字(在 keywordArray 中对应的下标)
 
-        List<String> wordList = getWordList(subSql);//获取 SQL 转换成的 整词List
-
-        int linkStart = 0;
-        int linkEnd = 0;
+        int linkStart = 0;//关联条件开始处下标
+        int linkEnd = 0;//关联条件结束处下标
 
 
         int i = 0;
         while (keywordIndex < keywordArray.length && i < wordList.size()) {
 
             temp1 = wordList.get(i);
+
+            if (temp1.equals("(")) {
+                List<String> subList = wordList.subList(i + 1, wordList.size());
+                System.out.println(subList);
+                resolveOneSql2(subList);
+            }
+
+            if (temp1.equals(")")) {
+                break;
+            }
+
+
+
+
+
+
+
 
             // FROM 与 JOIN 之间为 MAIN_TABLE
             if (keywordArray[keywordIndex].equals("JOIN")) {
@@ -179,6 +206,8 @@ public class Resolver {
                 //关联条件结束处下标
                 linkEnd = i - 2;
             }
+
+
 
 
             // 匹配关键字 只有当前关键字匹配成功时 才能继续匹配下一个关键字
