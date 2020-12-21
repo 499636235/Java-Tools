@@ -152,7 +152,10 @@ public class Resolver {
         boolean ifSqlFlag = true;
         // 标志当前循环中是否已经判断过 wordList 是否为SQL查询
         boolean ifJudgeSqlFlag = false;
-
+        // JOIN 的位置 (用于捕获表)
+        int tableStart = 0;
+        // ON 的位置 (用于捕获表)
+        int tableEnd = 0;
 
         while (keywordIndex < keywordArray.length && currentWordIndex < wordList.size()) {
             // 当前整词
@@ -163,20 +166,22 @@ public class Resolver {
                 List<String> subList = wordList.subList(currentWordIndex + 1, wordList.size());
 
                 System.out.println(subList);
+
                 // 返回子SQL的整词个数，让上层递归跳过子SQL
                 currentWordIndex += resolveOneSql2(subList);
+                continue;
 
                 //TODO 处理前面括号中的内容，判断是否为一张表，如果是表怎么关联？
             }
 
-
-            // 如果第一个词不是 SELECT
-            if (!ifJudgeSqlFlag&&!wordList.get(0).toUpperCase().equals("SELECT")) {
+            // 每对括号中只用判断一次
+            if (!ifJudgeSqlFlag){
+                // 如果第一个词不是 SELECT
+                if(!wordList.get(0).toUpperCase().equals("SELECT")) {
+                    // 不是SQL查询
+                    ifSqlFlag = false;
+                }
                 // 已经判断过 ifSqlFlag 的真假
-                ifJudgeSqlFlag = true;
-                // 不是SQL查询
-                ifSqlFlag = false;
-            }else{
                 ifJudgeSqlFlag = true;
             }
 
@@ -195,6 +200,26 @@ public class Resolver {
             if (temp1.equals(")")) {
                 break;
             }
+
+
+
+
+            if (temp1.toUpperCase().equals("JOIN")){
+                tableStart = currentWordIndex;
+            }
+
+
+
+            if (temp1.toUpperCase().equals("ON")){
+                tableEnd = currentWordIndex;
+                System.out.println("捕获到一个表:" + wordList.subList(tableStart + 1, tableEnd - 1));
+            }
+
+            if (temp1.toUpperCase().equals("WHERE")){
+
+            }
+
+
 
 
             // FROM 与 JOIN 之间为 MAIN_TABLE
