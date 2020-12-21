@@ -75,26 +75,33 @@ public class Resolver {
      * @return
      */
     public List<String> getWordList(String subSql) {
+        // 临时字符串对象
+        String temp1 = "";
+        // 存放 SQL中的每个整词 的 List
+        List<String> wordList = new ArrayList<>();
+        // SQL中的每个整词 起始处 所对应的下标
+        List<Integer> wordIndexList = new ArrayList<>();
 
-        String temp1 = "";//临时字符串对象
-
-        List<String> wordList = new ArrayList<>();//存放 SQL中的每个整词 的 List
-
-        List<Integer> wordIndexList = new ArrayList<>();//SQL中的每个整词 起始处 所对应的下标
-
-        while (index < subSql.length()) {//推进游标直到SQL结束
-            temp1 = getWholeWord(sql, index);//获取下一个完整的词
-            if (!temp1.equals("")) {//过滤空字符
-                wordList.add(temp1);//把整词加入List
-                wordIndexList.add(index);//把整词起始处的下标加入List
-                index += temp1.length();//游标推进
+        // 推进游标直到SQL结束
+        while (index < subSql.length()) {
+            // 获取下一个完整的词
+            temp1 = getWholeWord(sql, index);
+            // 过滤空字符
+            if (!temp1.equals("")) {
+                //把整词加入List
+                wordList.add(temp1);
+                // 把整词起始处的下标加入List
+                wordIndexList.add(index);
+                // 游标推进
+                index += temp1.length();
             } else {
-                index += 1;//跳过空字符
+                // 跳过空字符
+                index += 1;
             }
         }
 
-        //测试输出
-        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "AND"};//关键字数组
+        // 测试输出
+        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "AND"};
         List<String> keywordList = Arrays.asList(keywordArray);
         for (String s : wordList) {
             if (keywordList.contains(s.toUpperCase())) {
@@ -105,8 +112,6 @@ public class Resolver {
 
         }
         System.out.println();
-//        System.out.println(wordList);
-//        System.out.println(wordIndexList);
 
         return wordList;
     }
@@ -117,11 +122,10 @@ public class Resolver {
      * @param subSql
      */
     public void resolveWhileSql(String subSql) {
-
-        List<String> wordList = getWordList(subSql);//获取 SQL 转换成的 整词List
-
-        resolveOneSql2(wordList);//递归解析SQL
-
+        // 获取 SQL 转换成的 整词List
+        List<String> wordList = getWordList(subSql);
+        // 递归解析SQL
+        resolveOneSql2(wordList);
     }
 
     /**
@@ -132,52 +136,63 @@ public class Resolver {
      * @return int
      */
     private int resolveOneSql2(List<String> wordList) {
-
-        String temp1 = "";//临时字符串对象
-
-        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "END"};//关键字数组
-        int keywordIndex = 0;//下一个要匹配的关键字(在 keywordArray 中对应的下标)
-
-        int joinStart = 0;//关联条件开始处下标
-        int joinEnd = 0;//关联条件结束处下标
-
-        int currentWordIndex = 0;//当前整词在 wordList 中的下标
-
-        boolean ifSqlFlag = true;//标志当前 wordList 是否为SQL查询
-        boolean ifJudgeSqlFlag = false;//标志当前循环中是否已经判断过 wordList 是否为SQL查询
+        // 临时字符串对象
+        String temp1 = "";
+        // 关键字数组
+        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "END"};
+        // 下一个要匹配的关键字(在 keywordArray 中对应的下标)
+        int keywordIndex = 0;
+        // 关联条件开始处下标
+        int joinStart = 0;
+        // 关联条件结束处下标
+        int joinEnd = 0;
+        // 当前整词在 wordList 中的下标
+        int currentWordIndex = 0;
+        // 标志当前 wordList 是否为SQL查询
+        boolean ifSqlFlag = true;
+        // 标志当前循环中是否已经判断过 wordList 是否为SQL查询
+        boolean ifJudgeSqlFlag = false;
 
 
         while (keywordIndex < keywordArray.length && currentWordIndex < wordList.size()) {
-
-            temp1 = wordList.get(currentWordIndex);//当前整词
-
-            if (temp1.equals("(")) {//如果是左括号则进入递归
-                List<String> subList = wordList.subList(currentWordIndex + 1, wordList.size());//参数为该左括号之后的sql
+            // 当前整词
+            temp1 = wordList.get(currentWordIndex);
+            // 如果是左括号则进入递归
+            if (temp1.equals("(")) {
+                // 参数为该左括号之后的sql
+                List<String> subList = wordList.subList(currentWordIndex + 1, wordList.size());
 
                 System.out.println(subList);
-
-                currentWordIndex += resolveOneSql2(subList);//返回子SQL的整词个数，让上层递归跳过子SQL
+                // 返回子SQL的整词个数，让上层递归跳过子SQL
+                currentWordIndex += resolveOneSql2(subList);
 
                 //TODO 处理前面括号中的内容，判断是否为一张表，如果是表怎么关联？
             }
 
 
-            if (!ifJudgeSqlFlag&&!wordList.get(0).toUpperCase().equals("SELECT")) {//如果第一个词不是 SELECT
-                ifJudgeSqlFlag = true;//已经判断过 ifSqlFlag 的真假
-                ifSqlFlag = false;//不是SQL查询
+            // 如果第一个词不是 SELECT
+            if (!ifJudgeSqlFlag&&!wordList.get(0).toUpperCase().equals("SELECT")) {
+                // 已经判断过 ifSqlFlag 的真假
+                ifJudgeSqlFlag = true;
+                // 不是SQL查询
+                ifSqlFlag = false;
             }else{
                 ifJudgeSqlFlag = true;
             }
 
-            if (!ifSqlFlag){//如果不是SQL查询
-                if (temp1.equals(")")) {//当遇到右括号时退出递归
+            // 如果不是SQL查询
+            if (!ifSqlFlag){
+
+                // 当遇到右括号时退出递归
+                if (temp1.equals(")")) {
                     return currentWordIndex + 2;
                 }
                 currentWordIndex++;
                 continue;
             }
 
-            if (temp1.equals(")")) {//当遇到右括号时退出递归，并且返回子SQL的整词个数，让上层递归跳过子SQL
+            // 当遇到右括号时退出递归，并且返回子SQL的整词个数，让上层递归跳过子SQL
+            if (temp1.equals(")")) {
                 break;
             }
 
@@ -200,7 +215,7 @@ public class Resolver {
 
             // JOIN 与 ON 之间为 SUB_TABLE
             if (keywordArray[keywordIndex].equals("ON")) {
-                //SUB_TABLE
+                // SUB_TABLE
                 if (sub_table_alias == null) {
                     if (sub_table == null) {
                         if (temp1.matches("soochow_data\\.(\\w)+")) {
@@ -222,7 +237,7 @@ public class Resolver {
 
             // WHERE 之后的部分 暂时忽略
             if (keywordArray[keywordIndex].equals("END") && joinEnd == 0) {
-                //关联条件结束处下标
+                // 关联条件结束处下标
                 joinEnd = currentWordIndex - 2;
             }
 
@@ -264,10 +279,8 @@ public class Resolver {
     public String setSql() throws Exception {
         File testFilePath = null;
 
-        testFilePath = new File("D:\\Development\\ideaWorkSpace\\Java-Tools\\src\\ToolWorkSpace\\SQL_resolver\\test");
-        if (testFilePath.listFiles() == null) {
-            testFilePath = new File("D:\\Development\\ideaWorkplace\\Java-Tools\\src\\ToolWorkSpace\\SQL_resolver\\test");
-        }
+        testFilePath = new File("src\\ToolWorkSpace\\SQL_resolver\\test");
+
         File testFile = testFilePath.listFiles()[0];
 
         StringBuilder sqlStringBuilder = new StringBuilder("");
@@ -276,9 +289,12 @@ public class Resolver {
         InputStreamReader templateStreamReader = new InputStreamReader(new FileInputStream(testFile), "UTF-8");
         BufferedReader templateBufferReader = new BufferedReader(templateStreamReader);
         while ((lineTxt = templateBufferReader.readLine()) != null) {
-            lineTxt = lineTxt.replaceAll("\\(", " \\( ");//左括号两边加上空格，方便转换
-            lineTxt = lineTxt.replaceAll("\\)", " \\) ");//右括号两边加上空格，方便转换
-            lineTxt = lineTxt.replaceAll("(?i)select(\\s)?\\*(\\s)?from", "select \\* from");//把"select*from"拆开，方便转换
+            // 左括号两边加上空格，方便转换
+            lineTxt = lineTxt.replaceAll("\\(", " \\( ");
+            // 右括号两边加上空格，方便转换
+            lineTxt = lineTxt.replaceAll("\\)", " \\) ");
+            //把"select*from"拆开，方便转换
+            lineTxt = lineTxt.replaceAll("(?i)select(\\s)?\\*(\\s)?from", "select \\* from");
             sqlStringBuilder.append(lineTxt).append("\n");
         }
         templateStreamReader.close();
@@ -294,13 +310,17 @@ public class Resolver {
      * @return
      */
     public List<String> getMatchStrs(String str, String reg) {
-        Pattern patten = Pattern.compile(reg);//编译正则表达式
-        Matcher matcher = patten.matcher(str);// 指定要匹配的字符串
+        // 编译正则表达式
+        Pattern patten = Pattern.compile(reg);
+        // 指定要匹配的字符串
+        Matcher matcher = patten.matcher(str);
 
         List<String> matchStrs = new ArrayList<>();
 
-        while (matcher.find()) { //此处find()每次被调用后，会偏移到下一个匹配
-            matchStrs.add(matcher.group());//获取当前匹配的值
+        // 此处find()每次被调用后，会偏移到下一个匹配
+        while (matcher.find()) {
+            // 获取当前匹配的值
+            matchStrs.add(matcher.group());
         }
         return matchStrs;
     }
