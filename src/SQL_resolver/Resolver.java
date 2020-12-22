@@ -112,6 +112,7 @@ public class Resolver {
 
         }
         System.out.println();
+        System.out.println();
 
         return wordList;
     }
@@ -152,10 +153,12 @@ public class Resolver {
         boolean ifSqlFlag = true;
         // 标志当前循环中是否已经判断过 wordList 是否为SQL查询
         boolean ifJudgeSqlFlag = false;
-        // JOIN 的位置 (用于捕获表)
-        int tableStart = 0;
-        // ON 的位置 (用于捕获表)
-        int tableEnd = 0;
+        // 分割关键词 开始的位置 (用于捕获)
+        int splitKeywordStart = 0;
+        // 分割关键词 结束的位置 (用于捕获)
+        int splitKeywordEnd = 0;
+        // 分割关键词 List
+        List<String> splitKeywordList = Arrays.asList(new String[]{"FROM", "JOIN", "ON", "WHERE", ")"});
 
         while (keywordIndex < keywordArray.length && currentWordIndex < wordList.size()) {
             // 当前整词
@@ -165,7 +168,8 @@ public class Resolver {
                 // 参数为该左括号之后的sql
                 List<String> subList = wordList.subList(currentWordIndex + 1, wordList.size());
 
-                System.out.println(subList);
+                // 进入递归的subList
+                System.out.println("进入递归的subList:" + subList);
 
                 // 返回子SQL的整词个数，让上层递归跳过子SQL
                 currentWordIndex += resolveOneSql2(subList);
@@ -175,9 +179,9 @@ public class Resolver {
             }
 
             // 每对括号中只用判断一次
-            if (!ifJudgeSqlFlag){
+            if (!ifJudgeSqlFlag) {
                 // 如果第一个词不是 SELECT
-                if(!wordList.get(0).toUpperCase().equals("SELECT")) {
+                if (!wordList.get(0).toUpperCase().equals("SELECT")) {
                     // 不是SQL查询
                     ifSqlFlag = false;
                 }
@@ -186,7 +190,7 @@ public class Resolver {
             }
 
             // 如果不是SQL查询
-            if (!ifSqlFlag){
+            if (!ifSqlFlag) {
 
                 // 当遇到右括号时退出递归
                 if (temp1.equals(")")) {
@@ -196,31 +200,62 @@ public class Resolver {
                 continue;
             }
 
+
+            // 如果当前整词是分割关键词之一
+            if (splitKeywordList.contains(temp1.toUpperCase())) {
+                // 如果 当前整词是 FROM
+                if (temp1.toUpperCase().equals("FROM")) {
+                    // 记录当前分割关键词下标为捕获开始处
+                    splitKeywordStart = currentWordIndex;
+                }
+
+                // 如果 上一个分割关键词是 FROM 并且 当前整词是 JOIN
+                if (wordList.get(splitKeywordStart).toUpperCase().equals("FROM") && temp1.toUpperCase().equals("JOIN")) {
+                    // 记录当前分割关键词下标为捕获结束处
+                    splitKeywordEnd = currentWordIndex;
+                    System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
+                    splitKeywordStart = currentWordIndex;
+                }
+
+                // 如果 上一个分割关键词是 JOIN 并且 当前整词是 ON
+                if (wordList.get(splitKeywordStart).toUpperCase().equals("JOIN") && temp1.toUpperCase().equals("ON")) {
+                    // 记录当前分割关键词下标为捕获结束处
+                    splitKeywordEnd = currentWordIndex;
+                    System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
+                    splitKeywordStart = currentWordIndex;
+                }
+
+                // 如果 上一个分割关键词是 ON 并且 当前整词是 JOIN
+                if (wordList.get(splitKeywordStart).toUpperCase().equals("ON") && (temp1.toUpperCase().equals("JOIN") || temp1.toUpperCase().equals("WHERE"))) {
+                    // 记录当前分割关键词下标为捕获结束处
+                    splitKeywordEnd = currentWordIndex;
+                    System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
+                    splitKeywordStart = currentWordIndex;
+                }
+
+                // 如果 当前整词是 ")"
+                if (temp1.equals(")")) {
+                    // 记录当前分割关键词下标为捕获结束处
+                    splitKeywordEnd = currentWordIndex;
+                    System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
+                    splitKeywordStart = currentWordIndex;
+                }
+
+
+            }
+
+
             // 当遇到右括号时退出递归，并且返回子SQL的整词个数，让上层递归跳过子SQL
             if (temp1.equals(")")) {
+
+                // TODO 如果当前递归 从这个判断中结束，一定是SQL查询，所以在 break 之前要完成返回值的赋值（返回值应该包含很多信息而不只是一个int）
+
+
                 break;
             }
 
 
-
-
-            if (temp1.toUpperCase().equals("JOIN")){
-                tableStart = currentWordIndex;
-            }
-
-
-
-            if (temp1.toUpperCase().equals("ON")){
-                tableEnd = currentWordIndex;
-                System.out.println("捕获到一个表:" + wordList.subList(tableStart + 1, tableEnd - 1));
-            }
-
-            if (temp1.toUpperCase().equals("WHERE")){
-
-            }
-
-
-
+/*
 
             // FROM 与 JOIN 之间为 MAIN_TABLE
             if (keywordArray[keywordIndex].equals("JOIN")) {
@@ -265,6 +300,7 @@ public class Resolver {
                 // 关联条件结束处下标
                 joinEnd = currentWordIndex - 2;
             }
+*/
 
 
             // 匹配关键字 只有当前关键字匹配成功时 才能继续匹配下一个关键字
@@ -279,6 +315,7 @@ public class Resolver {
 
         // TODO 建立所有 TablePOJO 之间的 JoinPOJO
 
+/*
 
         System.out.println();
         System.out.println("当前wordList:" + wordList.subList(0, currentWordIndex));
@@ -291,7 +328,9 @@ public class Resolver {
             System.out.print(wordList.get(joinIndex) + " ");
         }
         System.out.println();
+*/
 
+        // 当前subSQL的整词个数， +2 是因为左右两个括号
         return currentWordIndex + 2;
     }
 
@@ -318,6 +357,8 @@ public class Resolver {
             lineTxt = lineTxt.replaceAll("\\(", " \\( ");
             // 右括号两边加上空格，方便转换
             lineTxt = lineTxt.replaceAll("\\)", " \\) ");
+            // 去除注释
+            lineTxt = lineTxt.replaceAll("--.*", "");
             //把"select*from"拆开，方便转换
             lineTxt = lineTxt.replaceAll("(?i)select(\\s)?\\*(\\s)?from", "select \\* from");
             sqlStringBuilder.append(lineTxt).append("\n");
