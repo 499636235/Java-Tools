@@ -1,11 +1,14 @@
 package SQL_resolver;
 
+import SQL_resolver.POJO.WordListInfo;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -107,7 +110,6 @@ public class Resolver {
             if (keywordList.contains(s.toUpperCase())) {
                 System.out.print("\n");
             }
-
             System.out.print(s + " ");
 
         }
@@ -126,7 +128,12 @@ public class Resolver {
         // 获取 SQL 转换成的 整词List
         List<String> wordList = getWordList(subSql);
         // 递归解析SQL
-        resolveOneSql2(wordList);
+        WordListInfo returnWordListInfo = resolveOneSql2(wordList);
+
+        // 测试输出
+        System.out.println("递归解析SQL:" + returnWordListInfo.getWordList() + "\n");
+
+
     }
 
     /**
@@ -136,7 +143,9 @@ public class Resolver {
      * @param wordList
      * @return int
      */
-    private int resolveOneSql2(List<String> wordList) {
+    private WordListInfo resolveOneSql2(List<String> wordList) {
+        // 当前 wordList 信息
+        WordListInfo wordListInfo = new WordListInfo();
         // 临时字符串对象
         String temp1 = "";
         // 关键字数组
@@ -149,8 +158,6 @@ public class Resolver {
         int joinEnd = 0;
         // 当前整词在 wordList 中的下标
         int currentWordIndex = 0;
-        // 标志当前 wordList 是否为SQL查询
-        boolean ifSqlFlag = true;
         // 标志当前循环中是否已经判断过 wordList 是否为SQL查询
         boolean ifJudgeSqlFlag = false;
         // 分割关键词 开始的位置 (用于捕获)
@@ -168,14 +175,38 @@ public class Resolver {
                 // 参数为该左括号之后的sql
                 List<String> subList = wordList.subList(currentWordIndex + 1, wordList.size());
 
-                // 进入递归的subList
-                System.out.println("进入递归的subList:" + subList);
+                // 返回子SQL的整词个数
+                WordListInfo returnWordListInfo = resolveOneSql2(subList);
 
-                // 返回子SQL的整词个数，让上层递归跳过子SQL
-                currentWordIndex += resolveOneSql2(subList);
+                // 如果是SQL查询
+                if (returnWordListInfo.getIfSqlFlag()) {
+                    // 递归解析的 子查询
+                    System.out.println("递归解析的子查询:" + returnWordListInfo.getWordList() + "\n");
+
+
+
+
+
+                    // TODO 处理前面括号中的内容，判断是否为一张表，如果是表怎么关联？
+                    // 这个List长度一定要先赋值给临时变量，否则报错！
+                    int deleteNum = returnWordListInfo.getWordList().size() + 1;
+                    // 移除子查询以及左括号
+                    for (int i = 0; i < deleteNum; i++) {
+                        wordList.remove(currentWordIndex);
+                    }
+                    //把剩下的右括号替换成新的表名
+                    wordList.set(currentWordIndex, "njy");
+
+                } else {
+                    // +2 是因为有左右括号
+                    int jumpWordNum = returnWordListInfo.getWordList().size() + 2;
+                    // 让上层递归跳过括号中的内容
+                    currentWordIndex += jumpWordNum;
+                }
+
+
                 continue;
 
-                //TODO 处理前面括号中的内容，判断是否为一张表，如果是表怎么关联？
             }
 
             // 每对括号中只用判断一次
@@ -183,67 +214,66 @@ public class Resolver {
                 // 如果第一个词不是 SELECT
                 if (!wordList.get(0).toUpperCase().equals("SELECT")) {
                     // 不是SQL查询
-                    ifSqlFlag = false;
+                    wordListInfo.setIfSqlFlag(false);
                 }
                 // 已经判断过 ifSqlFlag 的真假
                 ifJudgeSqlFlag = true;
             }
 
-            // 如果不是SQL查询
-            if (!ifSqlFlag) {
 
-                // 当遇到右括号时退出递归
+            // 如果是SQL查询
+            if (wordListInfo.getIfSqlFlag()) {
+
+                // 如果当前整词是分割关键词之一
+                if (splitKeywordList.contains(temp1.toUpperCase())) {
+                    // 如果 当前整词是 FROM
+                    if (temp1.toUpperCase().equals("FROM")) {
+                        // 记录当前分割关键词下标为捕获开始处
+                        splitKeywordStart = currentWordIndex;
+                    }
+
+                    // 如果 上一个分割关键词是 FROM 并且 当前整词是 JOIN
+                    if (wordList.get(splitKeywordStart).toUpperCase().equals("FROM") && temp1.toUpperCase().equals("JOIN")) {
+                        // 记录当前分割关键词下标为捕获结束处
+                        splitKeywordEnd = currentWordIndex;
+                        System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
+                        splitKeywordStart = currentWordIndex;
+                    }
+
+                    // 如果 上一个分割关键词是 JOIN 并且 当前整词是 ON
+                    if (wordList.get(splitKeywordStart).toUpperCase().equals("JOIN") && temp1.toUpperCase().equals("ON")) {
+                        // 记录当前分割关键词下标为捕获结束处
+                        splitKeywordEnd = currentWordIndex;
+                        System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
+                        splitKeywordStart = currentWordIndex;
+                    }
+
+                    // 如果 上一个分割关键词是 ON 并且 当前整词是 JOIN
+                    if (wordList.get(splitKeywordStart).toUpperCase().equals("ON") && (temp1.toUpperCase().equals("JOIN") || temp1.toUpperCase().equals("WHERE"))) {
+                        // 记录当前分割关键词下标为捕获结束处
+                        splitKeywordEnd = currentWordIndex;
+                        System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
+                        splitKeywordStart = currentWordIndex;
+                    }
+
+                    // 如果 当前整词是 ")"
+                    if (temp1.equals(")")) {
+                        // 记录当前分割关键词下标为捕获结束处
+                        splitKeywordEnd = currentWordIndex;
+                        System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
+                        splitKeywordStart = currentWordIndex;
+                    }
+
+
+                }
+            } else {
+                // 如果不是SQL查询，当遇到右括号时退出递归
                 if (temp1.equals(")")) {
-                    return currentWordIndex + 2;
+                    break;
                 }
                 currentWordIndex++;
                 continue;
             }
-
-
-            // 如果当前整词是分割关键词之一
-            if (splitKeywordList.contains(temp1.toUpperCase())) {
-                // 如果 当前整词是 FROM
-                if (temp1.toUpperCase().equals("FROM")) {
-                    // 记录当前分割关键词下标为捕获开始处
-                    splitKeywordStart = currentWordIndex;
-                }
-
-                // 如果 上一个分割关键词是 FROM 并且 当前整词是 JOIN
-                if (wordList.get(splitKeywordStart).toUpperCase().equals("FROM") && temp1.toUpperCase().equals("JOIN")) {
-                    // 记录当前分割关键词下标为捕获结束处
-                    splitKeywordEnd = currentWordIndex;
-                    System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
-                    splitKeywordStart = currentWordIndex;
-                }
-
-                // 如果 上一个分割关键词是 JOIN 并且 当前整词是 ON
-                if (wordList.get(splitKeywordStart).toUpperCase().equals("JOIN") && temp1.toUpperCase().equals("ON")) {
-                    // 记录当前分割关键词下标为捕获结束处
-                    splitKeywordEnd = currentWordIndex;
-                    System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
-                    splitKeywordStart = currentWordIndex;
-                }
-
-                // 如果 上一个分割关键词是 ON 并且 当前整词是 JOIN
-                if (wordList.get(splitKeywordStart).toUpperCase().equals("ON") && (temp1.toUpperCase().equals("JOIN") || temp1.toUpperCase().equals("WHERE"))) {
-                    // 记录当前分割关键词下标为捕获结束处
-                    splitKeywordEnd = currentWordIndex;
-                    System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
-                    splitKeywordStart = currentWordIndex;
-                }
-
-                // 如果 当前整词是 ")"
-                if (temp1.equals(")")) {
-                    // 记录当前分割关键词下标为捕获结束处
-                    splitKeywordEnd = currentWordIndex;
-                    System.out.println("捕获到" + wordList.get(splitKeywordStart) + "和" + wordList.get(splitKeywordEnd) + "之间的内容:" + wordList.subList(splitKeywordStart + 1, splitKeywordEnd));
-                    splitKeywordStart = currentWordIndex;
-                }
-
-
-            }
-
 
             // 当遇到右括号时退出递归，并且返回子SQL的整词个数，让上层递归跳过子SQL
             if (temp1.equals(")")) {
@@ -330,8 +360,9 @@ public class Resolver {
         System.out.println();
 */
 
-        // 当前subSQL的整词个数， +2 是因为左右两个括号
-        return currentWordIndex + 2;
+        // 返回当前 wordListInfo
+        wordListInfo.setWordList(wordList.subList(0, currentWordIndex));
+        return wordListInfo;
     }
 
     /**
