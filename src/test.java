@@ -10,6 +10,8 @@ import java.util.List;
 public class test {
     public static void main(String[] args) {
         test2();
+
+
     }
 
     public static void test1() {
@@ -63,5 +65,20 @@ public class test {
 
 
         System.out.println(a.getJoinPOJOListTo(c));
+    }
+
+    //测试 subList 同步更新
+    private void test5(){
+        List<String> wordList = new ArrayList<>();
+        wordList.add("1");
+        wordList.add("2");
+        wordList.add("3");
+        System.out.println();
+        System.out.println(wordList);
+        List<String> subList = wordList.subList(1,3);
+        System.out.println(subList);
+        subList.add("4");
+        System.out.println(subList);
+        System.out.println(wordList);
     }
 }

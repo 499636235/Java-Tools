@@ -28,6 +28,14 @@ public class Resolver {
     private String sub_table_alias = null;
 
     /**
+     * 自增，用于标记 wordList 的唯一标识符
+     */
+    private Integer wordListId = 0;
+    /**
+     * 整段SQL所有的 WordList
+     */
+    List<WordListInfo> wordListInfos;
+    /**
      * 读取整段SQL时使用的游标
      */
     private int index = 0;
@@ -44,7 +52,8 @@ public class Resolver {
     public Resolver() {
         try {
             setSql();
-            resolveWhileSql(sql);
+//            resolveWhileSql(sql);
+            getWhileSqlList(sql);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -120,6 +129,146 @@ public class Resolver {
     }
 
     /**
+     * 把整段SQL中的子查询全部转换成 WordListInfo （去整段SQL的括号）
+     *
+     * @param subSql
+     */
+    public void getWhileSqlList(String subSql) {
+        // 初始化标识符
+        wordListId = 0;
+        // 获取 SQL 转换成的 整词List
+        List<String> wordList = getWordList(subSql);
+        // 递归解析SQL
+        List<WordListInfo> returnWordLists = getSubSqlList(wordList);
+
+        for (WordListInfo wordListInfo : returnWordLists) {
+            System.out.println("wordListId:" + wordListInfo.getWordListId());
+            System.out.println("WordList:" + wordListInfo.getWordList());
+        }
+
+/*
+        WordListInfo returnWordListInfo = returnWordLists.get(returnWordLists.size()-1);
+        // 测试输出
+        System.out.println("递归去括号得到的SQL:" + returnWordListInfo.getWordList() + "\n");
+*/
+
+    }
+
+    /**
+     * 把当前SQL中的子查询全部转换成 WordListInfo （去掉所有括号）
+     *
+     * @param wordList
+     * @return int
+     */
+    private List<WordListInfo> getSubSqlList(List<String> wordList) {
+        // 当前 wordList 信息
+        WordListInfo wordListInfo = new WordListInfo();
+        // 临时字符串对象
+        String temp1 = "";
+        // 关键字数组
+        String[] keywordArray = {"SELECT", "FROM", "JOIN", "ON", "WHERE", "END"};
+        // 下一个要匹配的关键字(在 keywordArray 中对应的下标)
+        int keywordIndex = 0;
+        // 当前整词在 wordList 中的下标
+        int currentWordIndex = 0;
+        // 标志当前循环中是否已经判断过 wordList 是否为SQL查询
+        boolean ifJudgeSqlFlag = false;
+        // 要返回的List<WordListInfo>
+        wordListInfos = new ArrayList<>();
+
+        while (keywordIndex < keywordArray.length && currentWordIndex < wordList.size()) {
+            // 当前整词
+            temp1 = wordList.get(currentWordIndex);
+            // 如果是左括号则进入递归
+            if (temp1.equals("(")) {
+
+                // 参数为该左括号之后的sql (这里用subList可以在更新 子List 时 同步更新 父List)
+                List<String> subList = wordList.subList(currentWordIndex + 1, wordList.size());
+
+                // 获取子SQL的全部 WordListInfo
+                List<WordListInfo> returnWordLists = getSubSqlList(subList);
+                // 最后一个元素为去括号的子SQL
+                WordListInfo returnWordListInfo = returnWordLists.get(returnWordLists.size() - 1);
+
+                // 如果是SQL查询
+                if (returnWordListInfo.getIfSqlFlag()) {
+                    // 递归解析的 子查询
+                    System.out.println("递归处理的子查询:" + returnWordListInfo.getWordList() + "\n");
+
+                    System.out.println("处理前的当前查询:" + wordList + "\n");
+
+                    // 这个List长度一定要先赋值给临时变量，否则报错！（因为 subList 关联了 parentList）
+                    int deleteNum = returnWordListInfo.getWordList().size() + 1;
+                    // 移除子查询以及左括号
+                    for (int i = 0; i < deleteNum; i++) {
+                        wordList.remove(currentWordIndex);
+                    }
+                    //把剩下的右括号替换成新的表名
+                    wordList.set(currentWordIndex, "wordListId_" + wordListId++);
+
+                    System.out.println("处理后的当前查询:" + wordList + "\n");
+
+                } else {
+                    // +2 是因为有左右括号
+                    int jumpWordNum = returnWordListInfo.getWordList().size() + 2;
+                    // 让上层递归跳过括号中的内容
+                    currentWordIndex += jumpWordNum;
+                }
+
+
+                continue;
+
+            }
+
+            // 每对括号中只用判断一次
+            if (!ifJudgeSqlFlag) {
+                // 如果第一个词不是 SELECT
+                if (!wordList.get(0).toUpperCase().equals("SELECT")) {
+                    // 不是SQL查询
+                    wordListInfo.setIfSqlFlag(false);
+                }
+                // 已经判断过 ifSqlFlag 的真假
+                ifJudgeSqlFlag = true;
+            }
+
+
+            // 如果是SQL查询
+            if (wordListInfo.getIfSqlFlag()) {
+
+            } else {
+                // 如果不是SQL查询，当遇到右括号时退出递归
+                if (temp1.equals(")")) {
+                    break;
+                }
+                currentWordIndex++;
+                continue;
+            }
+
+            // 当遇到右括号时退出递归，并且返回子SQL的整词个数，让上层递归跳过子SQL
+            if (temp1.equals(")")) {
+                break;
+            }
+
+            // 匹配关键字 只有当前关键字匹配成功时 才能继续匹配下一个关键字
+            if (temp1.toUpperCase().equals(keywordArray[keywordIndex])) {
+                keywordIndex++;
+            }
+            currentWordIndex++;
+        }
+
+        // 当前 wordListInfo
+        wordListInfo.setWordListId(wordListId);
+
+        // 变成数组再变回List (这里不要用subList，防止在更新 子List 时 同步更新 父List)
+        List<String> tempList0= Arrays.asList(wordList.subList(0, currentWordIndex).toArray(new String[]{}));
+        List<String> tempList = new ArrayList<>(tempList0);
+
+        wordListInfo.setWordList(tempList);
+        wordListInfos.add(wordListInfo);
+        return wordListInfos;
+    }
+
+    /**
      * 解析整段SQL
      *
      * @param subSql
@@ -182,9 +331,6 @@ public class Resolver {
                 if (returnWordListInfo.getIfSqlFlag()) {
                     // 递归解析的 子查询
                     System.out.println("递归解析的子查询:" + returnWordListInfo.getWordList() + "\n");
-
-
-
 
 
                     // TODO 处理前面括号中的内容，判断是否为一张表，如果是表怎么关联？
